@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progressives for AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e6b4f;
+            --primary-dark: #155240;
+            --primary-light: #e8f5f0;
+            --accent: #e85d04;
+            --accent-light: #fff3eb;
+            --text: #1a1a2e;
+            --text-muted: #4a5568;
+            --bg: #ffffff;
+            --bg-alt: #f7fafc;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--bg);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        /* Email Signup Form */
+        .signup-form {
+            display: flex;
+            gap: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .signup-form input[type="email"] {
+            flex: 1;
+            min-width: 250px;
+            padding: 16px 20px;
+            font-size: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .signup-form input[type="email"]:focus {
+            border-color: var(--primary);
+        }
+
+        .signup-form button {
+            padding: 16px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .signup-form button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .form-note {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+
+        /* Why This Matters */
+        .why-matters {
+            padding: 80px 0;
+            background: var(--bg-alt);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 48px;
+            font-size: 1.1rem;
+        }
+
+        .priorities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .priority-card {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .priority-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .priority-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .priority-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .priority-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* AI 101 Section */
+        .ai-101 {
+            padding: 80px 0;
+        }
+
+        .explainer-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .explainer-card {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .explainer-card .number {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+
+        .explainer-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .explainer-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Concerns Section */
+        .concerns {
+            padding: 80px 0;
+            background: var(--bg-alt);
+        }
+
+        .concerns-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .concern-item {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .concern-item h3 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .concern-item h3 .icon {
+            color: var(--accent);
+        }
+
+        .concern-item p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .concern-item.highlight {
+            border-left-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 80px 0;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .cta h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .cta p {
+            opacity: 0.9;
+            max-width: 500px;
+            margin: 0 auto 32px;
+            font-size: 1.1rem;
+        }
+
+        .cta .signup-form input[type="email"] {
+            background: white;
+            border-color: white;
+        }
+
+        .cta .signup-form button {
+            background: var(--accent);
+        }
+
+        .cta .signup-form button:hover {
+            background: #d14e00;
+        }
+
+        .cta .form-note {
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .hero {
+                padding: 60px 0 40px;
+            }
+
+            .signup-form {
+                flex-direction: column;
+            }
+
+            .signup-form input[type="email"],
+            .signup-form button {
+                width: 100%;
+            }
+
+            .priority-card, .concern-item {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <a href="#" class="logo">
+                <div class="logo-icon">P</div>
+                Progressives for AI
+            </a>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>AI is shaping our future.<br><span>Progressives should be at the table.</span></h1>
+            <p>Technology doesn't have to be a tool of the powerful. Join us to understand AI, shape its development, and harness it for progressive change.</p>
+
+            <form class="signup-form" action="#" method="post">
+                <input type="email" placeholder="Enter your email" required>
+                <button type="submit">Join the Movement</button>
+            </form>
+            <p class="form-note">Free updates on AI from a progressive perspective. No spam, unsubscribe anytime.</p>
+        </div>
+    </section>
+
+    <section class="why-matters">
+        <div class="container">
+            <h2 class="section-title">Why This Matters</h2>
+            <p class="section-subtitle">AI intersects with every issue progressives care about. We can't afford to sit this one out.</p>
+
+            <div class="priorities-grid">
+                <div class="priority-card">
+                    <div class="priority-icon">⚖️</div>
+                    <h3>Labor Rights & Worker Power</h3>
+                    <p>AI can augment workers, not just replace them. With the right policies, we can ensure productivity gains benefit everyone—not just shareholders.</p>
+                </div>
+
+                <div class="priority-card">
+                    <div class="priority-icon">🏥</div>
+                    <h3>Healthcare Access & Equity</h3>
+                    <p>AI is already improving diagnostics, drug discovery, and care delivery. Progressives should fight to make these advances accessible to all, not just the wealthy.</p>
+                </div>
+
+                <div class="priority-card">
+                    <div class="priority-icon">🌍</div>
+                    <h3>Climate Solutions</h3>
+                    <p>From optimizing power grids to accelerating clean energy research, AI is a powerful tool in the climate fight. The environmental story is more nuanced than headlines suggest.</p>
+                </div>
+
+                <div class="priority-card">
+                    <div class="priority-icon">📚</div>
+                    <h3>Education Equity</h3>
+                    <p>Personalized tutoring was once only for the privileged. AI can democratize quality education, giving every student access to patient, adaptive support.</p>
+                </div>
+
+                <div class="priority-card">
+                    <div class="priority-icon">🛡️</div>
+                    <h3>Fighting Disinformation</h3>
+                    <p>Yes, AI can generate misinformation—but it's also our best tool for detecting and countering it at scale. We need progressives leading this fight.</p>
+                </div>
+
+                <div class="priority-card">
+                    <div class="priority-icon">🗳️</div>
+                    <h3>Democratic Participation</h3>
+                    <p>AI can help make government more accessible, translate policy into plain language, and amplify citizen voices. Let's build tools for the people.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ai-101">
+        <div class="container">
+            <h2 class="section-title">AI 101: The Basics</h2>
+            <p class="section-subtitle">You don't need a computer science degree to understand AI. Here's what actually matters.</p>
+
+            <div class="explainer-cards">
+                <div class="explainer-card">
+                    <div class="number">1</div>
+                    <h3>What is AI?</h3>
+                    <p>AI is software that learns patterns from data to make predictions or decisions. Think of it like a very sophisticated pattern-matcher—powerful, but not magic or sentient.</p>
+                </div>
+
+                <div class="explainer-card">
+                    <div class="number">2</div>
+                    <h3>What are LLMs?</h3>
+                    <p>Large Language Models (like ChatGPT or Claude) are AI trained on text to understand and generate language. They're tools for writing, analysis, coding, and conversation.</p>
+                </div>
+
+                <div class="explainer-card">
+                    <div class="number">3</div>
+                    <h3>What can AI do?</h3>
+                    <p>AI excels at processing information at scale: analyzing documents, answering questions, writing drafts, translating languages, and finding patterns humans might miss.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="concerns">
+        <div class="container">
+            <h2 class="section-title">Addressing Real Concerns</h2>
+            <p class="section-subtitle">We take these issues seriously. Here's how progressives can engage constructively.</p>
+
+            <div class="concerns-list">
+                <div class="concern-item">
+                    <h3><span class="icon">💼</span> Job Displacement</h3>
+                    <p>This is a legitimate concern—but the answer isn't to stop AI. It's to fight for policies that ensure workers share in productivity gains: stronger unions, universal basic services, retraining programs, and shorter work weeks. Technology has always changed work; our job is to make sure the benefits are shared.</p>
+                </div>
+
+                <div class="concern-item">
+                    <h3><span class="icon">⚠️</span> Bias & Fairness</h3>
+                    <p>AI systems can perpetuate and amplify existing biases—this is real. But it's also why we need progressives at the table: demanding transparency, pushing for diverse training data, and building oversight systems. Retreating cedes the field to those less concerned with equity.</p>
+                </div>
+
+                <div class="concern-item">
+                    <h3><span class="icon">🏢</span> Corporate Power</h3>
+                    <p>Big Tech dominance is a problem, but the solution is antitrust enforcement, open-source development, and public investment in AI—not blanket opposition. We should democratize AI, not abandon it to corporations.</p>
+                </div>
+
+                <div class="concern-item highlight">
+                    <h3><span class="icon">🌱</span> AI & the Environment</h3>
+                    <p><strong>The energy story is more complex than you've heard.</strong> Yes, AI training uses energy—but context matters. Major AI companies are among the largest purchasers of renewable energy and are driving innovation in efficiency. More importantly, AI is actively accelerating climate solutions: optimizing power grids, discovering new battery materials, improving climate models, reducing waste in supply chains, and enabling precision agriculture. The carbon cost of AI development is real but modest compared to its potential to help us solve the climate crisis faster.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Join the Conversation</h2>
+            <p>Get thoughtful analysis on AI from a progressive perspective. No hype, no doom—just honest engagement with the technology shaping our future.</p>
+
+            <form class="signup-form" action="#" method="post">
+                <input type="email" placeholder="Enter your email" required>
+                <button type="submit">Subscribe</button>
+            </form>
+            <p class="form-note">Join 1,000+ progressives already on the list.</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Progressives for AI. Building a future where technology serves everyone.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
