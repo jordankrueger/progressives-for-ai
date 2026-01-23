@@ -86,18 +86,91 @@
             margin: 0 auto 40px;
         }
 
-        /* Email Signup Form (embedded via iframe) */
+        /* Email Signup Forms */
         .signup-container {
             max-width: 560px;
             margin: 0 auto;
         }
 
-        .signup-container iframe.embed-frame {
+        .signup-form {
+            display: flex;
+            gap: 0;
+            max-width: 480px;
             width: 100%;
-            max-width: 560px;
-            height: 120px;
+            margin: 0 auto;
+        }
+
+        .signup-form input[type="email"] {
+            flex: 1;
+            min-width: 0;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: 2px solid var(--border);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            outline: none;
+            font-family: inherit;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+
+        .signup-form input[type="email"]:focus {
+            border-color: var(--primary);
+        }
+
+        .signup-form input[type="email"]::placeholder {
+            color: #a0aec0;
+        }
+
+        .signup-form button {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--accent);
+            color: white;
             border: none;
-            background-color: transparent;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .signup-form button:hover {
+            background: #d35400;
+        }
+
+        .signup-form button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .signup-message {
+            text-align: center;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .signup-message.success {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .signup-message.error {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        /* Footer form variant (on dark background) */
+        .cta .signup-form input[type="email"] {
+            border: none;
+        }
+
+        .cta .signup-message.success,
+        .cta .signup-message.error {
+            background: rgba(255,255,255,0.95);
         }
 
         .form-note {
@@ -296,11 +369,24 @@
 
             .signup-form {
                 flex-direction: column;
+                gap: 12px;
             }
 
-            .signup-form input[type="email"],
+            .signup-form input[type="email"] {
+                border-right: 2px solid var(--border);
+                border-radius: 8px;
+            }
+
+            .signup-form input[type="email"]:focus {
+                border-color: var(--primary);
+            }
+
+            .cta .signup-form input[type="email"] {
+                border: none;
+            }
+
             .signup-form button {
-                width: 100%;
+                border-radius: 8px;
             }
 
             .priority-card, .concern-item {
@@ -326,7 +412,10 @@
             <p>Technology doesn't have to be a tool of the powerful. Join us to understand AI, shape its development, and harness it for progressive change.</p>
 
             <div class="signup-container">
-                <iframe src="embed-hero.html" class="embed-frame" frameborder="0" scrolling="no"></iframe>
+                <form class="signup-form" id="heroForm">
+                    <input type="email" name="email" placeholder="Enter your email" required>
+                    <button type="submit">Join the movement</button>
+                </form>
             </div>
             <p class="form-note">Free updates on AI from a progressive perspective. No spam, unsubscribe anytime.</p>
         </div>
@@ -439,11 +528,65 @@
             <p>Get thoughtful analysis on AI from a progressive perspective. No hype, no doom—just honest engagement with the technology shaping our future.</p>
 
             <div class="signup-container">
-                <iframe src="embed-footer.html" class="embed-frame" frameborder="0" scrolling="no"></iframe>
+                <form class="signup-form" id="footerForm">
+                    <input type="email" name="email" placeholder="Enter your email" required>
+                    <button type="submit">Subscribe</button>
+                </form>
             </div>
             <p class="form-note">Join 1,000+ progressives already on the list.</p>
         </div>
     </section>
+
+    <script>
+        const WORKER_URL = 'https://progressives-signup.restless-salad-a31e.workers.dev';
+
+        async function handleSubmit(form, buttonText) {
+            const email = form.email.value;
+            const button = form.querySelector('button');
+            const container = form.parentElement;
+
+            button.disabled = true;
+            button.textContent = 'Joining...';
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    container.innerHTML = '<div class="signup-message success">Welcome aboard! Check your inbox.</div>';
+                } else {
+                    throw new Error(result.error || 'Something went wrong');
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="signup-message error">${error.message}</div>`;
+                setTimeout(() => {
+                    container.innerHTML = `
+                        <form class="signup-form" id="${form.id}">
+                            <input type="email" name="email" placeholder="Enter your email" required value="${email}">
+                            <button type="submit">${buttonText}</button>
+                        </form>
+                    `;
+                    attachFormListener(document.getElementById(form.id), buttonText);
+                }, 3000);
+            }
+        }
+
+        function attachFormListener(form, buttonText) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleSubmit(form, buttonText);
+            });
+        }
+
+        // Attach listeners to both forms
+        attachFormListener(document.getElementById('heroForm'), 'Join the movement');
+        attachFormListener(document.getElementById('footerForm'), 'Subscribe');
+    </script>
 
     <footer>
         <div class="container">
