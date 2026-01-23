@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -10,28 +13,127 @@
             box-sizing: border-box;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: transparent;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: 100px;
+            padding: 10px;
         }
-        .embed-wrapper {
+        .signup-form {
+            display: flex;
+            gap: 0;
+            max-width: 480px;
             width: 100%;
-            max-width: 560px;
+            justify-content: center;
         }
-        iframe.beehiiv-embed {
-            width: 100%;
-            height: 207px;
+        .signup-form input[type="email"] {
+            flex: 1;
+            min-width: 0;
+            padding: 14px 20px;
+            font-size: 16px;
             border: none;
-            background-color: transparent;
+            border-radius: 8px 0 0 8px;
+            outline: none;
+            font-family: inherit;
+            background: #fff;
+        }
+        .signup-form input[type="email"]::placeholder {
+            color: #a0aec0;
+        }
+        .signup-form button {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            background: #e85d04;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .signup-form button:hover {
+            background: #d35400;
+        }
+        .signup-form button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+        .message {
+            text-align: center;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .message.success {
+            background: rgba(255,255,255,0.95);
+            color: #1e6b4f;
+        }
+        .message.error {
+            background: rgba(255,255,255,0.95);
+            color: #e85d04;
+        }
+        @media (max-width: 480px) {
+            .signup-form {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .signup-form input[type="email"] {
+                border-radius: 8px;
+            }
+            .signup-form button {
+                border-radius: 8px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="embed-wrapper">
-        <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script><iframe src="https://subscribe-forms.beehiiv.com/52b225d1-cfe3-4e00-9970-ca5c5d840a09" class="beehiiv-embed" data-test-id="beehiiv-embed" frameborder="0" scrolling="no" style="width: 484px; height: 100px; margin: 0; border-radius: 0px 0px 0px 0px !important; background-color: transparent; box-shadow: 0 0 #0000; max-width: 100%;"></iframe>
-    </div>
+    <form class="signup-form" id="subscribeForm">
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <button type="submit">Subscribe</button>
+    </form>
+
+    <script>
+        const form = document.getElementById('subscribeForm');
+        const WORKER_URL = 'https://progressives-signup.YOUR_SUBDOMAIN.workers.dev';
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = form.email.value;
+            const button = form.querySelector('button');
+            const originalText = button.textContent;
+
+            button.disabled = true;
+            button.textContent = 'Subscribing...';
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    form.innerHTML = '<div class="message success">Welcome aboard! Check your inbox.</div>';
+                } else {
+                    throw new Error(result.error || 'Something went wrong');
+                }
+            } catch (error) {
+                form.innerHTML = `<div class="message error">${error.message}</div>`;
+                setTimeout(() => {
+                    form.innerHTML = `
+                        <input type="email" name="email" placeholder="Enter your email" required value="${email}">
+                        <button type="submit">Subscribe</button>
+                    `;
+                }, 3000);
+            }
+        });
+    </script>
 </body>
 </html>
