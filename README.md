@@ -175,10 +175,4 @@ wrangler publish
 
 ---
 
-## Contact
-
-**Email:** anthropic@pandemicsoul.com
-
----
-
 *Built with care for a future where technology serves everyone.*
