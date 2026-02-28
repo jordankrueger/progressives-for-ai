@@ -1,25 +1,33 @@
 /**
- * Cloudflare Worker: Progressives for AI Newsletter Signup
+ * Cloudflare Worker: Newsletter Signup
  *
- * This worker receives email signups from your custom forms and adds
- * subscribers directly to Beehiiv via their API.
+ * Routes signups to ListMonk lists based on the `list` field in the request body.
+ * Uses ListMonk's public subscription API (no auth required).
  *
  * SETUP:
  * 1. Create a new Worker in Cloudflare Dashboard
  * 2. Paste this code
  * 3. Add these environment variables (Settings > Variables):
- *    - BEEHIIV_API_KEY: Your Beehiiv API key
- *    - BEEHIIV_PUBLICATION_ID: Your publication ID (found in Beehiiv URL)
- *    - ALLOWED_ORIGIN: https://progressivesforai.com
+ *    - LISTMONK_URL: https://newsletter.campaign.help
+ *    - ALLOWED_ORIGINS: Comma-separated origins (e.g. https://progressivesforai.com,https://jordankrueger.com)
  */
+
+const LIST_UUIDS = {
+  'progressives-for-ai': '2b5e7218-a0fc-4623-a6cb-1c98f47379cd',
+  'mission-control': 'd11cd3d8-d706-4edf-a724-9725cbd2e3f0',
+};
 
 export default {
   async fetch(request, env) {
+    const origin = request.headers.get('Origin') || '';
+    const allowedOrigins = (env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim());
+    const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*';
+
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         headers: {
-          'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || '*',
+          'Access-Control-Allow-Origin': allowedOrigin,
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type',
           'Access-Control-Max-Age': '86400',
@@ -29,55 +37,47 @@ export default {
 
     // Only allow POST requests
     if (request.method !== 'POST') {
-      return jsonResponse({ error: 'Method not allowed' }, 405, env);
+      return jsonResponse({ error: 'Method not allowed' }, 405, allowedOrigin);
     }
 
     try {
-      const { email } = await request.json();
+      const { email, name, list } = await request.json();
 
       // Validate email
       if (!email || !isValidEmail(email)) {
-        return jsonResponse({ error: 'Please enter a valid email address' }, 400, env);
+        return jsonResponse({ error: 'Please enter a valid email address' }, 400, allowedOrigin);
       }
 
-      // Add subscriber to Beehiiv
-      const beehiivResponse = await fetch(
-        `https://api.beehiiv.com/v2/publications/${env.BEEHIIV_PUBLICATION_ID}/subscriptions`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${env.BEEHIIV_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: email,
-            reactivate_existing: true,
-            send_welcome_email: true,
-            utm_source: 'website',
-            utm_medium: 'custom_form',
-          }),
-        }
-      );
-
-      if (!beehiivResponse.ok) {
-        const errorData = await beehiivResponse.json().catch(() => ({}));
-        console.error('Beehiiv API error:', errorData);
-
-        // Handle specific Beehiiv errors
-        if (beehiivResponse.status === 409) {
-          // Already subscribed - treat as success
-          return jsonResponse({ success: true, message: 'Welcome back!' }, 200, env);
-        }
-
-        return jsonResponse({ error: 'Unable to subscribe. Please try again.' }, 500, env);
+      // Resolve list UUID (default to progressives-for-ai)
+      const listKey = list || 'progressives-for-ai';
+      const listUUID = LIST_UUIDS[listKey];
+      if (!listUUID) {
+        return jsonResponse({ error: 'Invalid list' }, 400, allowedOrigin);
       }
 
-      const result = await beehiivResponse.json();
-      return jsonResponse({ success: true, message: 'Successfully subscribed!' }, 200, env);
+      // Add subscriber via ListMonk public API
+      const listmonkUrl = env.LISTMONK_URL || 'https://newsletter.campaign.help';
+      const listmonkResponse = await fetch(`${listmonkUrl}/api/public/subscription`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          name: name || '',
+          list_uuids: [listUUID],
+        }),
+      });
+
+      if (!listmonkResponse.ok) {
+        const errorData = await listmonkResponse.json().catch(() => ({}));
+        console.error('ListMonk API error:', errorData);
+        return jsonResponse({ error: 'Unable to subscribe. Please try again.' }, 500, allowedOrigin);
+      }
+
+      return jsonResponse({ success: true, message: 'Successfully subscribed!' }, 200, allowedOrigin);
 
     } catch (error) {
       console.error('Worker error:', error);
-      return jsonResponse({ error: 'Something went wrong. Please try again.' }, 500, env);
+      return jsonResponse({ error: 'Something went wrong. Please try again.' }, 500, allowedOrigin);
     }
   },
 };
@@ -87,12 +87,12 @@ function isValidEmail(email) {
   return emailRegex.test(email);
 }
 
-function jsonResponse(data, status, env) {
+function jsonResponse(data, status, allowedOrigin) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': env?.ALLOWED_ORIGIN || '*',
+      'Access-Control-Allow-Origin': allowedOrigin || '*',
     },
   });
 }

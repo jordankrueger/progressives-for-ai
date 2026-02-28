@@ -50,7 +50,7 @@ A newsletter and community for progressives engaging thoughtfully with AI techno
 |-----------|------------|
 | **Hosting** | Cloudflare Pages |
 | **Source Control** | GitHub |
-| **Newsletter Backend** | Beehiiv |
+| **Newsletter Backend** | ListMonk (newsletter.campaign.help) |
 | **Form Handler** | Cloudflare Workers |
 | **Styling** | Vanilla CSS (no frameworks) |
 
@@ -73,21 +73,24 @@ progressives-for-ai/
 
 1. User enters email in form on `index.html`
 2. JavaScript sends POST request to Cloudflare Worker
-3. Worker validates email and calls Beehiiv API
-4. Beehiiv adds subscriber and sends welcome email
+3. Worker validates email and calls ListMonk public subscription API
+4. ListMonk adds subscriber to the specified list
 5. User sees success message
 
 ### Cloudflare Worker
 
 **Deployed at:** `https://progressives-signup.restless-salad-a31e.workers.dev`
 
+Supports multiple lists via the `list` field in the request body:
+- `progressives-for-ai` (default) — PfAI newsletter
+- `mission-control` — Jordan's personal newsletter
+
 **Environment Variables (set in Cloudflare Dashboard):**
 
 | Variable | Description |
 |----------|-------------|
-| `BEEHIIV_API_KEY` | API key from Beehiiv Settings → Integrations → API |
-| `BEEHIIV_PUBLICATION_ID` | Publication ID (from Beehiiv URL, e.g., `pub_xxxxx`) |
-| `ALLOWED_ORIGIN` | `https://progressivesforai.com` |
+| `LISTMONK_URL` | `https://newsletter.campaign.help` |
+| `ALLOWED_ORIGINS` | Comma-separated origins (e.g. `https://progressivesforai.com,https://jordankrueger.com`) |
 
 ---
 
@@ -142,23 +145,25 @@ wrangler publish
 
 ---
 
-## Beehiiv Integration
+## ListMonk Integration
 
-**Publication:** Jordan's Newsletter (rename in Beehiiv settings if desired)
+**Instance:** https://newsletter.campaign.help (CampaignHelp VPS)
+**Public API:** `POST /api/public/subscription` (no auth required)
 
-### API Endpoints Used
+### Lists
 
-- `POST /v2/publications/{id}/subscriptions` — Add new subscriber
+| List | UUID | Sending Domain |
+|------|------|---------------|
+| Progressives for AI | `2b5e7218-a0fc-4623-a6cb-1c98f47379cd` | progressivesforai.com |
+| Mission Control | `d11cd3d8-d706-4edf-a724-9725cbd2e3f0` | jordankrueger.com |
 
 ### Subscriber Data Sent
 
 ```json
 {
   "email": "user@example.com",
-  "reactivate_existing": true,
-  "send_welcome_email": true,
-  "utm_source": "website",
-  "utm_medium": "custom_form"
+  "name": "",
+  "list_uuids": ["2b5e7218-a0fc-4623-a6cb-1c98f47379cd"]
 }
 ```
 
