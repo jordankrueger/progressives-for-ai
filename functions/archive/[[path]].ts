@@ -12,6 +12,16 @@ export const onRequest: PagesFunction = async ({ request }) => {
     },
   });
 
+  // Pass through redirects with the Location header (rewriting to stay on this domain)
+  if (response.status >= 300 && response.status < 400) {
+    const location = response.headers.get("location") || "";
+    const rewritten = location.replace(LISTMONK_ORIGIN, "");
+    return new Response(null, {
+      status: response.status,
+      headers: { "location": rewritten },
+    });
+  }
+
   const contentType = response.headers.get("content-type") || "";
 
   // For HTML responses, rewrite relative paths so CSS/images load from ListMonk

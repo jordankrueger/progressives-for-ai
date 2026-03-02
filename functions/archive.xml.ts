@@ -8,6 +8,15 @@ export const onRequest: PagesFunction = async ({ request }) => {
     },
   });
 
+  // Pass through redirects with Location header
+  if (response.status >= 300 && response.status < 400) {
+    const location = response.headers.get("location") || "";
+    return new Response(null, {
+      status: response.status,
+      headers: { "location": location },
+    });
+  }
+
   let xml = await response.text();
   // Rewrite ListMonk archive links to stay on this domain
   xml = xml.replace(
