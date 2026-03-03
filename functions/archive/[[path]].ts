@@ -2,8 +2,12 @@ const LISTMONK_ORIGIN = "https://newsletter.campaign.help";
 
 export const onRequest: PagesFunction = async ({ request }) => {
   const url = new URL(request.url);
-  // Map /archive/... to the ListMonk archive path
-  const targetUrl = LISTMONK_ORIGIN + url.pathname + url.search;
+  // Normalize the path and ensure it stays under /archive to prevent traversal
+  const normalized = new URL(url.pathname, "https://dummy").pathname;
+  if (!normalized.startsWith("/archive")) {
+    return new Response("Not found", { status: 404 });
+  }
+  const targetUrl = LISTMONK_ORIGIN + normalized + url.search;
 
   const response = await fetch(targetUrl, {
     headers: {
