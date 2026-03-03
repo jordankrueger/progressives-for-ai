@@ -19,6 +19,7 @@
     <meta name="twitter:title" content="Progressives for AI">
     <meta name="twitter:description" content="A weekly newsletter helping progressives understand AI, shape its development, and harness it for progressive change. No hype, no doom.">
     <meta name="twitter:image" content="https://progressivesforai.com/progressives-for-ai-sharing.png">
+    <link rel="alternate" type="application/rss+xml" title="Progressives for AI" href="/archive.xml">
 
     <style>
         :root {
@@ -72,6 +73,42 @@
         .logo-icon {
             font-size: 1.75rem;
             line-height: 1;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .header-nav a {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .header-nav a:hover {
+            color: var(--primary);
+        }
+
+        .header-nav .rss-link {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-nav .rss-link svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
         }
 
         /* Hero Section */
@@ -374,6 +411,20 @@
             font-size: 0.9rem;
         }
 
+        .footer-links {
+            margin-bottom: 8px;
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
         /* Responsive */
         @media (max-width: 600px) {
             .hero {
@@ -411,11 +462,15 @@
 <body>
 
     <header>
-        <div class="container">
-            <a href="#" class="logo">
+        <div class="container header-inner">
+            <a href="/" class="logo">
                 <span class="logo-icon">🌄</span>
                 Progressives for AI
             </a>
+            <nav class="header-nav">
+                <a href="/archive">Archive</a>
+                <a href="/archive.xml" class="rss-link"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="6.18" cy="17.82" r="2.18"/><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/></svg>RSS</a>
+            </nav>
         </div>
     </header>
 
@@ -602,6 +657,7 @@
 
     <footer>
         <div class="container">
+            <p class="footer-links"><a href="/archive">Archive</a> &middot; <a href="/archive.xml">RSS Feed</a></p>
             <p>&copy; 2026 Progressives for AI. Building a future where technology serves everyone.</p>
         </div>
     </footer>
