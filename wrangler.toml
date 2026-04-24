@@ -1,6 +1,6 @@
 name = "progressives-signup"
 main = "worker.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-04-24"
 account_id = "f00242a6a1d94ee54ad9a5792e722252"
 
 [vars]

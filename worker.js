@@ -67,7 +67,7 @@ export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
     const allowedOrigins = (env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim());
-    const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*';
+    const allowedOrigin = allowedOrigins.includes(origin) ? origin : '*';
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
