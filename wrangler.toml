@@ -1,0 +1,13 @@
+name = "progressives-signup"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+account_id = "f00242a6a1d94ee54ad9a5792e722252"
+
+[vars]
+LISTMONK_URL = "https://newsletter.campaign.help"
+ALLOWED_ORIGINS = "https://progressivesforai.com,https://jordankrueger.com"
+LISTMONK_API_USER = "api-automation"
+
+# Secrets (set via: wrangler secret put <NAME>)
+#   RESEND_API_KEY
+#   LISTMONK_API_PASSWORD
