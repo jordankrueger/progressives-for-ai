@@ -6,7 +6,7 @@
  *
  * SETUP (Cloudflare Dashboard > Workers > progressives-signup > Settings > Variables):
  *   - LISTMONK_URL:          https://newsletter.campaign.help
- *   - ALLOWED_ORIGINS:       https://progressivesforai.com,https://jordankrueger.com
+ *   - ALLOWED_ORIGINS:       https://progressivesforai.com,https://jordankrueger.com,https://groundedai.help
  *   - LISTMONK_API_USER:     api-automation
  *   - LISTMONK_API_PASSWORD: (secret) Listmonk API token for the api-automation user
  *   - RESEND_API_KEY:        (secret) Resend API key for sending bonus welcome emails
