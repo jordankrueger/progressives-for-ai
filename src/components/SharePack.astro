@@ -1,0 +1,28 @@
+---
+import CopyButton from './CopyButton.astro';
+
+interface Props {
+  blurb: string;
+  url?: string;
+  title?: string;
+}
+
+const { blurb, url = Astro.url.href, title = 'Share this Reality Check' } = Astro.props;
+const copyBlurb = `${blurb} ${url}`;
+const blueskyUrl = `https://bsky.app/intent/compose?text=${encodeURIComponent(copyBlurb)}`;
+const mailtoUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(copyBlurb)}`;
+---
+
+<div class="sharepack">
+  <h3>{title}</h3>
+  <p>Grab a pre-written post or send the link straight to your group.</p>
+  <div class="blurb">
+    {blurb} {url}
+    <CopyButton text={copyBlurb} />
+  </div>
+  <div class="sharerow">
+    <CopyButton text={url} label="Copy link" className="primary" />
+    <a href={blueskyUrl}>Post to Bluesky</a>
+    <a href={mailtoUrl}>Email</a>
+  </div>
+</div>

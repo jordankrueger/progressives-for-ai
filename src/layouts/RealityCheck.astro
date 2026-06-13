@@ -1,0 +1,104 @@
+---
+import Base from './Base.astro';
+import NewsletterSignup from '../components/NewsletterSignup.astro';
+import SharePack from '../components/SharePack.astro';
+
+type ChangelogEntry = {
+  date: string;
+  note: string;
+};
+
+interface Props {
+  title: string;
+  dek: string;
+  category: 'myth' | 'guide' | 'tracker';
+  topic: string;
+  published: Date;
+  updated: Date;
+  changelog: ChangelogEntry[];
+  readingTime?: number;
+  ogImage?: string;
+  sourceCount?: number;
+}
+
+const {
+  title,
+  dek,
+  category,
+  topic,
+  published,
+  updated,
+  changelog,
+  readingTime,
+  ogImage = 'https://progressivesforai.com/progressives-for-ai-sharing.png',
+  sourceCount = 0,
+} = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, 'https://progressivesforai.com').href;
+const categoryLabel = category === 'myth' ? 'Myth' : category === 'guide' ? 'Guide' : 'Tracker';
+const dateFormatter = new Intl.DateTimeFormat('en', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description: dek,
+  datePublished: published.toISOString(),
+  dateModified: updated.toISOString(),
+  image: ogImage,
+  url: canonicalUrl,
+  publisher: {
+    '@type': 'Organization',
+    name: 'Progressives for AI',
+    url: 'https://progressivesforai.com',
+  },
+};
+---
+
+<Base title={`${title} | Progressives for AI`} description={dek} ogImage={ogImage}>
+  <main class="rc-page">
+    <article class="rc-article">
+      <div class="pad">
+        <div class="crumb"><a href="/reality-check/">Reality Check</a> / {topic}</div>
+        <span class="badge">{categoryLabel} · {topic}</span>
+        <h1>{title}</h1>
+        <div class="meta">
+          <span>Last updated {dateFormatter.format(updated)}</span>
+          {readingTime && <span>{readingTime} min read</span>}
+          <span>{sourceCount} sources</span>
+        </div>
+        <div class="verdict">
+          <div class="label">The short version</div>
+          <p>{dek}</p>
+        </div>
+        <slot />
+      </div>
+
+      {changelog.length > 0 && (
+        <div class="changelog">
+          <h3>What changed</h3>
+          {changelog.map((entry) => (
+            <div class="row"><span class="d">{entry.date}</span>{entry.note}</div>
+          ))}
+        </div>
+      )}
+
+      <div class="pad sharepad">
+        <SharePack
+          title="Share this Reality Check"
+          blurb={dek}
+          url={canonicalUrl}
+        />
+        <div class="rc-newsletter">
+          <h2>Get the next Reality Check</h2>
+          <p>Evidence-forward AI analysis for progressives, sent by email.</p>
+          <NewsletterSignup formId="realityCheckForm" />
+        </div>
+      </div>
+    </article>
+  </main>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</Base>
