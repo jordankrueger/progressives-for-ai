@@ -48,11 +48,14 @@ A newsletter and community for progressives engaging thoughtfully with AI techno
 
 | Component | Technology |
 |-----------|------------|
-| **Hosting** | Cloudflare Pages |
-| **Source Control** | GitHub |
+| **Framework** | Astro (`output: 'static'`, mdx + sitemap) — mirrors jordankrueger.com |
+| **Hosting** | Cloudflare Pages (build: `npm run build` → `dist/`; Node pinned via `.nvmrc`) |
+| **Source Control** | GitHub (`jordankrueger/progressives-for-ai`) |
 | **Newsletter Backend** | ListMonk (newsletter.campaign.help) |
-| **Form Handler** | Cloudflare Workers |
-| **Styling** | Vanilla CSS (no frameworks) |
+| **Form Handler** | Cloudflare Workers (`worker.js`) |
+| **Page Proxies** | Cloudflare Pages Functions (`functions/` — archive + RSS) |
+| **Content** | MDX content collections (`src/content/reality-check/`) |
+| **Styling** | Vanilla CSS (`src/styles/global.css`) |
 
 ---
 
@@ -60,11 +63,23 @@ A newsletter and community for progressives engaging thoughtfully with AI techno
 
 ```
 progressives-for-ai/
-├── index.html          # Main landing page
-├── embed-hero.html     # Standalone hero form (legacy, for external embeds)
-├── embed-footer.html   # Standalone footer form (legacy, for external embeds)
-├── worker.js           # Cloudflare Worker source (deployed separately)
-└── README.md           # This file
+├── src/
+│   ├── pages/
+│   │   ├── index.astro              # Homepage
+│   │   └── reality-check/
+│   │       ├── index.astro          # Reality Check hub
+│   │       └── [slug].astro         # Reality Check entry renderer
+│   ├── content/reality-check/*.mdx  # Reality Check pages (living content)
+│   ├── content.config.ts            # reality-check collection schema
+│   ├── layouts/ (Base, RealityCheck)
+│   ├── components/ (Header, Footer, NewsletterSignup, Stat,
+│   │               TalkingPoints, SharePack, Sources, CopyButton)
+│   └── styles/global.css
+├── functions/          # Cloudflare Pages Functions: archive.xml.ts + archive/[[path]].ts
+├── worker.js           # Cloudflare Worker (signup) — deployed separately, NOT via Pages build
+├── wrangler.toml       # Config for the signup Worker only
+├── astro.config.mjs / package.json / .nvmrc
+└── embed-*.html        # Legacy standalone forms for external embeds
 ```
 
 ---
@@ -96,22 +111,21 @@ Supports multiple lists via the `list` field in the request body:
 
 ## Local Development
 
-Since this is a static site, you can run it locally with any simple HTTP server:
-
 ```bash
-# Using Python
-python -m http.server 8000
-
-# Using Node.js (npx)
-npx serve .
-
-# Using PHP
-php -S localhost:8000
+npm install
+npm run dev        # Astro dev server (hot reload)
+npm run build      # Production build → dist/
+npm run preview    # Serve the built dist/ on :4321
 ```
 
-Then open `http://localhost:8000` in your browser.
+**To test the `functions/` proxies locally** (they don't run under `astro dev`):
 
-**Note:** Form submissions will still go to the production Cloudflare Worker. For local testing of the worker, use `wrangler dev`.
+```bash
+npm run build && npx wrangler pages dev dist
+# then hit http://localhost:8788/archive.xml and /archive/<slug>
+```
+
+**Note:** Signup form submissions go to the production Cloudflare Worker even locally.
 
 ---
 
@@ -119,13 +133,30 @@ Then open `http://localhost:8000` in your browser.
 
 ### Website (Cloudflare Pages)
 
-Deployments are automatic on push to the `main` branch on GitHub.
+Auto-deploys on push to `main`. The Pages project (`progressives-for-ai`) is configured with:
+
+- **Build command:** `npm run build`
+- **Build output directory:** `dist`
+- **Node version:** pinned via `.nvmrc` (22)
 
 ```bash
 git add .
 git commit -m "Your commit message"
-git push
+git push   # → Cloudflare Pages builds main and deploys
 ```
+
+### ⚠️ Cloudflare Pages Functions + the Astro build (verified gotcha)
+
+The `functions/` directory (the `/archive` and `/archive.xml` proxies) is a **Cloudflare Pages Functions** feature, separate from the Astro build. Pages reads `functions/` from the **project root** and compiles it independently of the build output dir. This was the main risk when migrating to a build step — **verified working** (June 2026) both locally (`wrangler pages dev dist`) and on a real preview deploy: `/archive.xml` and `/archive/<slug>` return 200 alongside the Astro `dist/` output.
+
+Practical rules:
+- Keep `functions/` at the **repo root**, not inside `src/` or `dist/`.
+- `wrangler.toml` configures the **signup Worker only** (`name = "progressives-signup"`); Pages ignores it because it has no `pages_build_output_dir`. Don't add Pages config there.
+- The signup Worker is deployed separately (below) — it is NOT built or deployed by the Pages git build.
+
+### Reality Check content
+
+Pages live in `src/content/reality-check/*.mdx`. To add one: create an `.mdx` file with the frontmatter schema in `src/content.config.ts` (title, dek, category, topic, published, updated, changelog, sourceCount), set `draft: false` to publish, and it auto-appears in the hub grouped by `category`. Every statistic must cite a verified source (see the `2026-*-claim/research-notes.md` folders).
 
 ### Worker (Cloudflare Workers)
 

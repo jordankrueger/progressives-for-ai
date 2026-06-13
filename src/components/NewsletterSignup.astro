@@ -44,19 +44,20 @@ const buttonText = formId === 'footerForm' ? 'Subscribe' : 'Join the movement';
                             <button type="submit">${buttonText}</button>
                         </form>
                     `;
-                    attachFormListener(document.getElementById(form.id), buttonText);
+                    attachFormListener(document.getElementById(form.id));
                 }, 3000);
             }
         }
 
-        function attachFormListener(form, buttonText) {
+        function attachFormListener(form) {
+            if (!form) return;
+            const buttonText = form.querySelector('button')?.textContent?.trim() || 'Subscribe';
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 handleSubmit(form, buttonText);
             });
         }
 
-        // Attach listeners to both forms
-        attachFormListener(document.getElementById('heroForm'), 'Join the movement');
-        attachFormListener(document.getElementById('footerForm'), 'Subscribe');
+        // Wire every signup form on the page (hero, footer, Reality Check, and any future form)
+        document.querySelectorAll('form.signup-form').forEach((form) => attachFormListener(form));
     </script>
