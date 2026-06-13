@@ -1,0 +1,53 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+const entries = await getCollection('reality-check', ({ data }) => data.draft !== true);
+const labels = {
+  myth: 'Myths',
+  guide: 'Guides',
+  tracker: 'Tracker',
+};
+const grouped = {
+  myth: entries.filter((entry) => entry.data.category === 'myth'),
+  guide: entries.filter((entry) => entry.data.category === 'guide'),
+  tracker: entries.filter((entry) => entry.data.category === 'tracker'),
+};
+---
+
+<Base
+  title="Reality Check | Progressives for AI"
+  description="Evidence-forward AI reality checks for progressives."
+>
+  <main class="rc-hub">
+    <div class="container">
+      <span class="badge">Reality Check</span>
+      <h1>Reality Check</h1>
+      <p class="dek">Evidence-forward pages built to separate real AI concerns from bad statistics and easy panic.</p>
+
+      {entries.length === 0 ? (
+        <div class="empty-state">
+          <h2>Reality Checks coming soon</h2>
+          <p>The hub is ready. Published pages will appear here once they clear sourcing review.</p>
+        </div>
+      ) : (
+        Object.entries(grouped).map(([category, items]) => (
+          items.length > 0 && (
+            <section class="hub-group">
+              <h2>{labels[category]}</h2>
+              <div class="hub-list">
+                {items.map((entry) => (
+                  <a href={`/reality-check/${entry.id}/`} class="hub-entry">
+                    <span class="badge">{labels[entry.data.category].slice(0, -1)} · {entry.data.topic}</span>
+                    <h3>{entry.data.title}</h3>
+                    <p>{entry.data.dek}</p>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )
+        ))
+      )}
+    </div>
+  </main>
+</Base>

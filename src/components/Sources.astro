@@ -1,0 +1,30 @@
+---
+type Source = {
+  title: string;
+  url: string;
+  verified: string;
+  note?: string;
+};
+
+interface Props {
+  sources: Source[];
+}
+
+const { sources } = Astro.props;
+---
+
+<div class="sources">
+  <h3>Sources ({sources.length})</h3>
+  <ol>
+    {sources.map((source, index) => (
+      <li id={`source-${index + 1}`}>
+        <span>{source.title}</span>
+        {source.note && <span> — {source.note}</span>}
+        {' '}
+        <a href={source.url}>Link</a>
+        {' · '}
+        <span>verified {source.verified}</span>
+      </li>
+    ))}
+  </ol>
+</div>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reality Check — deep template (v2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1e6b4f; --green-dark:#155240; --green-light:#e8f5f0;
+    --orange:#e85d04; --orange-light:#fff3eb;
+    --text:#1a1a2e; --muted:#4a5568; --bg:#fff; --bg-alt:#f7fafc; --border:#e2e8f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);background:var(--bg-alt);line-height:1.6}
+  .annot{max-width:820px;margin:24px auto 0;padding:0 20px;color:var(--muted);font-size:14px}
+  .annot strong{color:var(--orange)}
+  header.site{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:840px;margin:14px auto 0}
+  .nav{padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+  .logo{font-weight:800;color:var(--green);font-size:18px}
+  .nav a{color:var(--muted);text-decoration:none;font-weight:500;font-size:15px;margin-left:22px}
+  .nav a.active{color:var(--green);font-weight:600}
+  article{background:#fff;border:1px solid var(--border);border-radius:14px;margin:18px auto 40px;max-width:840px;overflow:hidden}
+  .pad{padding:40px 52px}
+  .crumb{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .crumb a{color:var(--green);text-decoration:none}
+  .badge{display:inline-block;background:var(--green-light);color:var(--green-dark);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:4px 10px;border-radius:999px;margin-bottom:14px}
+  h1{font-size:36px;line-height:1.15;letter-spacing:-.02em;margin-bottom:10px;font-weight:800}
+  .meta{font-size:13px;color:var(--muted);margin-bottom:22px;display:flex;gap:16px;flex-wrap:wrap}
+  .dek{font-size:20px;color:var(--muted);line-height:1.5;margin-bottom:26px}
+  /* TL;DR / verdict */
+  .verdict{background:linear-gradient(135deg,var(--green-light),#fff);border:1px solid var(--green);border-radius:14px;padding:22px 24px;margin-bottom:30px}
+  .verdict .label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin-bottom:8px}
+  .verdict p{font-size:18px;font-weight:600;color:var(--green-dark);line-height:1.45}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);margin:38px 0 12px;font-weight:700}
+  h2 .num{color:var(--border);margin-right:8px}
+  p{margin-bottom:16px;font-size:17px}
+  .heard{background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-style:italic;color:var(--muted);margin:8px 0 20px}
+  sup a{color:var(--green);text-decoration:none;font-weight:600;font-size:12px}
+  /* STAT CARD (copyable) */
+  .stat{position:relative;border:1px solid var(--border);border-left:4px solid var(--green);border-radius:0 12px 12px 0;padding:18px 56px 18px 22px;margin:16px 0;background:#fff}
+  .stat .big{font-size:30px;font-weight:800;color:var(--green-dark);line-height:1.1;letter-spacing:-.01em}
+  .stat .desc{font-size:14px;color:var(--muted);margin-top:6px}
+  .stat .src{font-size:12px;color:var(--muted);margin-top:6px;opacity:.85}
+  .copy{position:absolute;top:14px;right:14px;background:var(--green-light);color:var(--green-dark);border:none;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .copy:hover{background:var(--green);color:#fff}
+  .copy.done{background:var(--orange);color:#fff}
+  /* TALKING POINTS */
+  .tp{background:var(--bg-alt);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin:26px 0}
+  .tp .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .tp h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+  .tp .copyall{background:var(--green);color:#fff;border:none;border-radius:7px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .tp ul{list-style:none}
+  .tp li{position:relative;padding:12px 50px 12px 16px;border-bottom:1px solid var(--border);font-size:15px}
+  .tp li:last-child{border-bottom:none}
+  .tp .copy{top:9px}
+  .real-move{background:var(--orange-light);border-radius:12px;padding:22px 24px;margin-top:14px}
+  .real-move h2{margin-top:0}
+  .real-move p{margin-bottom:0}
+  /* graphics roadmap */
+  .graphics{border:2px dashed var(--border);border-radius:12px;padding:26px;margin:30px 0;text-align:center;color:var(--muted)}
+  .graphics .tag{display:inline-block;background:var(--orange-light);color:var(--orange);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:999px;margin-bottom:10px}
+  .graphics .row{display:flex;gap:12px;justify-content:center;margin-top:14px;opacity:.5}
+  .graphics .thumb{width:120px;height:80px;background:var(--green-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--green)}
+  /* sources */
+  .sources{background:var(--bg-alt);border-top:1px solid var(--border);padding:28px 52px}
+  .sources h3,.changelog h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;font-weight:700}
+  .sources ol{margin-left:18px;font-size:13px;color:var(--muted)}
+  .sources li{margin-bottom:8px}
+  .sources a{color:var(--green)}
+  .changelog{padding:22px 52px 30px;border-top:1px dashed var(--border)}
+  .changelog .row{font-size:13px;color:var(--muted);margin-bottom:6px}
+  .changelog .d{color:var(--text);font-weight:600;margin-right:8px}
+  /* SHARE PACK */
+  .sharepack{background:var(--green);color:#fff;border-radius:14px;padding:26px 28px;margin:6px 0}
+  .sharepack h3{font-size:18px;margin-bottom:6px}
+  .sharepack p{font-size:14px;opacity:.92;margin-bottom:16px}
+  .blurb{background:rgba(255,255,255,.12);border-radius:9px;padding:14px 16px;font-size:14px;position:relative;padding-right:56px;margin-bottom:14px;line-height:1.5}
+  .blurb .copy{background:#fff;color:var(--green-dark);top:11px}
+  .sharerow{display:flex;gap:10px;flex-wrap:wrap}
+  .sharerow a{background:rgba(255,255,255,.15);color:#fff;padding:9px 15px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none}
+  .sharerow a.primary{background:var(--orange)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:11px 20px;border-radius:9px;font-size:14px;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="annot">Mockup <strong>v2 — the "deep, mineable" template</strong>. More data, copy buttons that actually work (try them), a share pack, and a graphics/memes roadmap slot. Real water content.</div>
+
+<header class="site"><div class="nav">
+  <span class="logo">🌄 Progressives for AI</span>
+  <nav><a href="#">Newsletter</a><a href="#" class="active">Reality Check</a><a href="#">Archive</a></nav>
+</div></header>
+
+<article>
+  <div class="pad">
+    <div class="crumb"><a href="#">← Reality Check</a> / Environment</div>
+    <span class="badge">Myth · Environment</span>
+    <h1>Does AI really waste all our water?</h1>
+    <div class="meta"><span>🕑 Last updated June 13, 2026</span><span>⏱ 6 min read</span><span>📎 9 sources</span></div>
+
+    <div class="verdict">
+      <div class="label">The short version</div>
+      <p>AI's water use is real but small at national scale — U.S. golf courses use 3× more water than every data center on Earth combined. The legitimate concern is <em>local</em>: big facilities in already-stressed regions. Fight that, not a bad statistic.</p>
+    </div>
+
+    <h2><span class="num">01</span>What you've heard</h2>
+    <div class="heard">"AI is draining our water. Every ChatGPT query drinks a bottle of water, and data centers are sucking communities dry."</div>
+
+    <h2><span class="num">02</span>What's actually true — the numbers</h2>
+    <p>Pull any of these and they bring their source with them when you paste:</p>
+
+    <div class="stat">
+      <div class="big">476B vs 148B gallons/yr</div>
+      <div class="desc">U.S. golf courses vs. <em>all</em> data centers worldwide — a 3.2× ratio.</div>
+      <div class="src">Center for Irrigation Technology (USGA); EESI, 2023</div>
+      <button class="copy" onclick="cp(this,'U.S. golf courses use ~476 billion gallons of water/year vs. ~148 billion for all data centers worldwide combined — 3.2× more. (Sources: Center for Irrigation Technology/USGA; EESI)')">Copy</button>
+    </div>
+
+    <div class="stat">
+      <div class="big">43 golf courses</div>
+      <div class="desc">All of Google's global data centers (6.4B gal, 2023) equal the annual irrigation of just 43 golf courses.</div>
+      <div class="src">Google 2023 Environmental Report</div>
+      <button class="copy" onclick="cp(this,'All of Google&apos;s global data centers used ~6.4 billion gallons of water in 2023 — equal to about 43 golf courses. (Source: Google 2023 Environmental Report)')">Copy</button>
+    </div>
+
+    <div class="stat">
+      <div class="big">905M vs 29B gallons</div>
+      <div class="desc">In Maricopa County (2025), data centers used 905M gallons; golf courses used ~29 billion — 32× more.</div>
+      <div class="src">Arizona reporting, 2025</div>
+      <button class="copy" onclick="cp(this,'In Maricopa County (2025), data centers used 905 million gallons of water vs. ~29 billion for golf courses — 32× more for golf. (Source: AZ reporting 2025)')">Copy</button>
+    </div>
+
+    <p>The "bottle per query" figure comes from one 2023 estimate that bundles in electricity-generation water and has been stretched well past what its authors claimed.<sup><a href="#s">3</a></sup></p>
+
+    <h2><span class="num">03</span>Where the real concern is</h2>
+    <p>The honest worry isn't national totals — it's <strong>local and regional</strong>. A large facility in a water-stressed county (parts of Arizona, Texas) can strain that specific aquifer, and siting decisions are often made with minimal public input. That's real, specific, and winnable — a different fight than "AI is an environmental catastrophe."<sup><a href="#s">4</a></sup></p>
+
+    <div class="tp">
+      <div class="head"><h3>Talking points — ready to paste</h3><button class="copyall" onclick="cpAll()">Copy all</button></div>
+      <ul id="tplist">
+        <li>"Golf uses 3× more water than every data center on Earth — combined."<button class="copy" onclick="cp(this,'Golf uses 3× more water than every data center on Earth — combined.')">Copy</button></li>
+        <li>"The water issue is real, but it's local — not a reason to oppose AI, a reason to fight for smart siting rules."<button class="copy" onclick="cp(this,'The water issue is real, but it&apos;s local — not a reason to oppose AI, a reason to fight for smart siting rules.')">Copy</button></li>
+        <li>"If we're serious about water, golf courses and alfalfa are a bigger fight than data centers."<button class="copy" onclick="cp(this,'If we&apos;re serious about water, golf courses and alfalfa are a bigger fight than data centers.')">Copy</button></li>
+      </ul>
+    </div>
+
+    <div class="real-move">
+      <h2><span class="num">04</span>The progressive move</h2>
+      <p>Don't cede the water issue to bad math. Push for what matters: public-interest siting rules, water-recycling and air-cooling mandates, and transparency on local draw — so host communities share the benefits, not just the costs.</p>
+    </div>
+
+    <div class="graphics">
+      <span class="tag">Roadmap — not in v1</span>
+      <div>Shareable graphics &amp; memes for this page</div>
+      <div class="row"><div class="thumb">stat card</div><div class="thumb">comparison</div><div class="thumb">meme</div></div>
+    </div>
+  </div>
+
+  <div class="sources">
+    <h3>Sources (9)</h3>
+    <ol id="s">
+      <li>U.S. golf water use — Center for Irrigation Technology, cited by USGA. <a href="#">Link</a> · verified 2026-04-27</li>
+      <li>Global data center water — EESI (560 billion liters, 2023). <a href="#">Link</a> · verified 2026-04-27</li>
+      <li>"Bottle per query" origin — Pengfei Li et al., 2023. <a href="#">Link</a></li>
+      <li>Local water stress + siting — Arizona Republic. <a href="#">Link</a></li>
+      <li class="src" style="list-style:none;margin-left:-18px;opacity:.6">…+5 more</li>
+    </ol>
+  </div>
+
+  <div class="changelog"><h3>What changed</h3>
+    <div class="row"><span class="d">Jun 2026</span>Added Maricopa County + Google comparisons.</div>
+    <div class="row"><span class="d">Apr 2026</span>First published.</div>
+  </div>
+
+  <div class="pad" style="padding-top:6px">
+    <div class="sharepack">
+      <h3>Share this Reality Check</h3>
+      <p>Grab a pre-written post or send the link straight to your group.</p>
+      <div class="blurb">Heard AI is "draining our water"? It's mostly a myth. U.S. golf courses use 3× more water than every data center on Earth combined. The real issue is local siting — here's the breakdown: [link]
+        <button class="copy" onclick="cp(this,'Heard AI is &quot;draining our water&quot;? It&apos;s mostly a myth. U.S. golf courses use 3× more water than every data center on Earth combined. The real issue is local siting — here&apos;s the breakdown: https://progressivesforai.com/reality-check/water')">Copy</button>
+      </div>
+      <div class="sharerow">
+        <a href="#" class="primary">Copy link</a><a href="#">Post to Bluesky</a><a href="#">Email</a>
+      </div>
+    </div>
+  </div>
+</article>
+
+<div class="toast" id="toast">Copied with source ✓</div>
+<script>
+function cp(btn,text){navigator.clipboard.writeText(text);var o=btn.textContent;btn.textContent='Copied ✓';btn.classList.add('done');t();setTimeout(function(){btn.textContent=o;btn.classList.remove('done')},1400)}
+function cpAll(){var items=[...document.querySelectorAll('#tplist li')].map(function(li){return '• '+li.firstChild.textContent.trim()}).join('\n');navigator.clipboard.writeText(items+'\n\nSource: progressivesforai.com/reality-check/water');t()}
+function t(){var el=document.getElementById('toast');el.classList.add('show');setTimeout(function(){el.classList.remove('show')},1500)}
+</script>
+</body>
+</html>

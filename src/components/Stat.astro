@@ -1,0 +1,21 @@
+---
+import CopyButton from './CopyButton.astro';
+
+interface Props {
+  big: string;
+  desc: string;
+  source: string;
+  copyText?: string;
+}
+
+const { big, desc, source, copyText } = Astro.props;
+const text = copyText ?? `${big}: ${desc} Source: ${source}`;
+const textWithSource = text.includes('Source') ? text : `${text} Source: ${source}`;
+---
+
+<div class="stat">
+  <div class="big">{big}</div>
+  <div class="desc">{desc}</div>
+  <div class="src">Source: {source}</div>
+  <CopyButton text={textWithSource} />
+</div>

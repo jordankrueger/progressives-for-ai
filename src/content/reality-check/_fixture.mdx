@@ -1,0 +1,79 @@
+---
+title: "Fixture Reality Check"
+dek: "This draft fixture exercises the Reality Check components without publishing a page."
+category: "myth"
+topic: "Testing"
+published: 2026-06-13
+updated: 2026-06-13
+changelog:
+  - date: "Jun 2026"
+    note: "Added the draft component fixture."
+readingTime: 1
+draft: true
+---
+
+import Stat from '../../components/Stat.astro';
+import TalkingPoints from '../../components/TalkingPoints.astro';
+import SharePack from '../../components/SharePack.astro';
+import Sources from '../../components/Sources.astro';
+
+<h2><span class="num">01</span>What you've heard</h2>
+
+<div class="heard">"A draft fixture should never be emitted into the production build."</div>
+
+<h2><span class="num">02</span>What's actually true</h2>
+
+The fixture contains a citation.<sup><a href="#source-1">1</a></sup>
+
+<Stat
+  big="0 published fixture pages"
+  desc="Draft Reality Check entries are excluded from getStaticPaths."
+  source="Progressives for AI fixture source"
+/>
+
+<TalkingPoints
+  points={[
+    {
+      text: 'Draft fixtures can exercise copy behavior without publishing.',
+      source: 'Progressives for AI fixture source',
+    },
+    {
+      text: 'Every copied talking point carries source attribution.',
+      source: 'Progressives for AI second fixture source',
+    },
+  ]}
+  url="https://progressivesforai.com/reality-check/fixture"
+/>
+
+<div class="real-move">
+  <h2><span class="num">03</span>The progressive move</h2>
+  <p>Keep infrastructure test content draft-only until a sourced public page is ready.</p>
+</div>
+
+<div class="graphics">
+  <span class="tag">Roadmap — not in v1</span>
+  <div>Shareable graphics and memes for this page</div>
+  <div class="row"><div class="thumb">stat card</div><div class="thumb">comparison</div><div class="thumb">meme</div></div>
+</div>
+
+<Sources
+  sources={[
+    {
+      title: 'Progressives for AI fixture source',
+      url: 'https://progressivesforai.com/',
+      verified: '2026-06-13',
+      note: 'Component testing source',
+    },
+    {
+      title: 'Progressives for AI second fixture source',
+      url: 'https://progressivesforai.com/archive',
+      verified: '2026-06-13',
+      note: 'Second component testing source',
+    },
+  ]}
+/>
+
+<SharePack
+  blurb="This draft fixture checks the Reality Check share pack."
+  url="https://progressivesforai.com/reality-check/fixture"
+/>

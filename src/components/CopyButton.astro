@@ -1,0 +1,58 @@
+---
+interface Props {
+  text: string;
+  label?: string;
+  className?: string;
+}
+
+const { text, label = 'Copy', className = '' } = Astro.props;
+---
+
+<button class:list={['copy', className]} type="button" data-copy={text} hidden>{label}</button>
+
+<script>
+  const COPY_DONE_TEXT = 'Copied ✓';
+  const COPY_RESET_DELAY = 1400;
+  const TOAST_RESET_DELAY = 1500;
+
+  function ensureCopyToast() {
+    let toast = document.querySelector('.toast');
+
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = 'Copied with source ✓';
+      document.body.append(toast);
+    }
+
+    return toast;
+  }
+
+  function showCopyToast() {
+    const toast = ensureCopyToast();
+    toast.classList.add('show');
+    window.setTimeout(() => toast.classList.remove('show'), TOAST_RESET_DELAY);
+  }
+
+  async function copyText(button) {
+    const text = button.dataset.copy || '';
+    const originalText = button.textContent || 'Copy';
+
+    await navigator.clipboard.writeText(text);
+    button.textContent = COPY_DONE_TEXT;
+    button.classList.add('done');
+    showCopyToast();
+
+    window.setTimeout(() => {
+      button.textContent = originalText;
+      button.classList.remove('done');
+    }, COPY_RESET_DELAY);
+  }
+
+  if ('clipboard' in navigator) {
+    document.querySelectorAll('.copy[data-copy]').forEach((button) => {
+      button.hidden = false;
+      button.addEventListener('click', () => copyText(button));
+    });
+  }
+</script>

@@ -1,0 +1,42 @@
+---
+import CopyButton from './CopyButton.astro';
+
+type Point = {
+  text: string;
+  source: string;
+  copyText?: string;
+};
+
+interface Props {
+  points: Point[];
+  url?: string;
+  title?: string;
+}
+
+const { points, url = Astro.url.href, title = 'Talking points — ready to paste' } = Astro.props;
+const copyLines = points.map((point) => {
+  const text = point.copyText ?? point.text;
+  return text.includes('Source') ? `• ${text}` : `• ${text} Source: ${point.source}`;
+});
+const copyAllText = `${copyLines.join('\n')}\n\nSource: ${url}`;
+---
+
+<div class="tp">
+  <div class="head">
+    <h3>{title}</h3>
+    <CopyButton text={copyAllText} label="Copy all" className="copyall" />
+  </div>
+  <ul>
+    {points.map((point) => {
+      const text = point.copyText ?? point.text;
+      const textWithSource = text.includes('Source') ? text : `${text} Source: ${point.source}`;
+
+      return (
+        <li>
+          <span>{point.text}</span>
+          <CopyButton text={textWithSource} />
+        </li>
+      );
+    })}
+  </ul>
+</div>
