@@ -1,0 +1,62 @@
+---
+const { formId } = Astro.props;
+const buttonText = formId === 'footerForm' ? 'Subscribe' : 'Join the movement';
+---
+
+<div class="signup-container">
+    <form class="signup-form" id={formId}>
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <button type="submit">{buttonText}</button>
+    </form>
+</div>
+
+<script>
+        const WORKER_URL = 'https://progressives-signup.restless-salad-a31e.workers.dev';
+
+        async function handleSubmit(form, buttonText) {
+            const email = form.email.value;
+            const button = form.querySelector('button');
+            const container = form.parentElement;
+
+            button.disabled = true;
+            button.textContent = 'Joining...';
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    container.innerHTML = '<div class="signup-message success">Welcome aboard! Check your inbox.</div>';
+                } else {
+                    throw new Error(result.error || 'Something went wrong');
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="signup-message error">${error.message}</div>`;
+                setTimeout(() => {
+                    container.innerHTML = `
+                        <form class="signup-form" id="${form.id}">
+                            <input type="email" name="email" placeholder="Enter your email" required value="${email}">
+                            <button type="submit">${buttonText}</button>
+                        </form>
+                    `;
+                    attachFormListener(document.getElementById(form.id), buttonText);
+                }, 3000);
+            }
+        }
+
+        function attachFormListener(form, buttonText) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleSubmit(form, buttonText);
+            });
+        }
+
+        // Attach listeners to both forms
+        attachFormListener(document.getElementById('heroForm'), 'Join the movement');
+        attachFormListener(document.getElementById('footerForm'), 'Subscribe');
+    </script>

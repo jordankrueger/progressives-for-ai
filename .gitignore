@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.astro/
+.wrangler/
+tests/__shots__/
+test-results/

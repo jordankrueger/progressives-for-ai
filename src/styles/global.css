@@ -1,0 +1,435 @@
+        :root {
+            --primary: #1e6b4f;
+            --primary-dark: #155240;
+            --primary-light: #e8f5f0;
+            --accent: #e85d04;
+            --accent-light: #fff3eb;
+            --text: #1a1a2e;
+            --text-muted: #4a5568;
+            --bg: #ffffff;
+            --bg-alt: #f7fafc;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--bg);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 1.75rem;
+            line-height: 1;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .header-nav a {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .header-nav a:hover {
+            color: var(--primary);
+        }
+
+        .header-nav .rss-link {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-nav .rss-link svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        /* Email Signup Forms */
+        .signup-container {
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .signup-form {
+            display: flex;
+            gap: 0;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .signup-form input[type="email"] {
+            flex: 1;
+            min-width: 0;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: 2px solid var(--border);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            outline: none;
+            font-family: inherit;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+
+        .signup-form input[type="email"]:focus {
+            border-color: var(--primary);
+        }
+
+        .signup-form input[type="email"]::placeholder {
+            color: #a0aec0;
+        }
+
+        .signup-form button {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .signup-form button:hover {
+            background: #d35400;
+        }
+
+        .signup-form button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .signup-message {
+            text-align: center;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .signup-message.success {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .signup-message.error {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        /* Footer form variant (on dark background) */
+        .cta .signup-form input[type="email"] {
+            border: none;
+        }
+
+        .cta .signup-message.success,
+        .cta .signup-message.error {
+            background: rgba(255,255,255,0.95);
+        }
+
+        .form-note {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+
+        /* Why This Matters */
+        .why-matters {
+            padding: 80px 0;
+            background: var(--bg-alt);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 48px;
+            font-size: 1.1rem;
+        }
+
+        .priorities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .priority-card {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .priority-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .priority-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .priority-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .priority-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* AI 101 Section */
+        .ai-101 {
+            padding: 80px 0;
+        }
+
+        .explainer-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .explainer-card {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .explainer-card .number {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+
+        .explainer-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .explainer-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Concerns Section */
+        .concerns {
+            padding: 80px 0;
+            background: var(--bg-alt);
+        }
+
+        .concerns-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .concern-item {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .concern-item h3 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .concern-item h3 .icon {
+            color: var(--accent);
+        }
+
+        .concern-item p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .concern-item.highlight {
+            border-left-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 80px 0;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .cta h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .cta p {
+            opacity: 0.9;
+            max-width: 500px;
+            margin: 0 auto 32px;
+            font-size: 1.1rem;
+        }
+
+        .cta .form-note {
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            margin-bottom: 8px;
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .hero {
+                padding: 60px 0 40px;
+            }
+
+            .signup-form {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .signup-form input[type="email"] {
+                border-right: 2px solid var(--border);
+                border-radius: 8px;
+            }
+
+            .signup-form input[type="email"]:focus {
+                border-color: var(--primary);
+            }
+
+            .cta .signup-form input[type="email"] {
+                border: none;
+            }
+
+            .signup-form button {
+                border-radius: 8px;
+            }
+
+            .priority-card, .concern-item {
+                padding: 24px;
+            }
+        }
