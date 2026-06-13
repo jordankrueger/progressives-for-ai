@@ -18,6 +18,7 @@ const realityCheck = defineCollection({
       }),
     ),
     readingTime: z.number().optional(),
+    sourceCount: z.number().optional(),
     ogImage: z.string().optional(),
     draft: z.boolean().default(false),
   }),
