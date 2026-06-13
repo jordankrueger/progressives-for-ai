@@ -1,0 +1,153 @@
+---
+title: "Is AI guzzling all our electricity?"
+dek: "AI's electricity use is real and growing fast, but it's still a small slice of the whole: all U.S. data centers used less power in 2024 than American home air conditioning. The fight worth having is over who pays for the buildout and what powers it, not whether the grid can survive."
+category: "myth"
+topic: "Environment"
+published: 2026-06-13
+updated: 2026-06-13
+readingTime: 7
+sourceCount: 8
+changelog:
+  - date: "Jun 2026"
+    note: "First published."
+---
+
+import Stat from '../../components/Stat.astro';
+import TalkingPoints from '../../components/TalkingPoints.astro';
+import Sources from '../../components/Sources.astro';
+
+<h2><span class="num">01</span>What you've heard</h2>
+
+<div class="heard">"AI is guzzling unsustainable amounts of electricity. Every chatbot question burns ten times a Google search, data centers are about to break the grid, and the whole thing is cooking the planet."</div>
+
+The growth is real, and parts of this are worth worrying about. But the "AI is breaking the grid" headline gets the scale wrong, and points the alarm at the wrong target.
+
+<h2><span class="num">02</span>What's actually true</h2>
+
+Data centers are a real and fast-growing load. They are not, at the national scale, an outlier.
+
+<Stat
+  big="4.4%"
+  desc="Share of total U.S. electricity used by all data centers in 2023 (about 176 TWh). The federal projection for 2028 is a wide range, 6.7% to 12%, depending on how fast the rest of the economy grows, not a settled 12%."
+  source="Lawrence Berkeley National Laboratory / U.S. Dept. of Energy, 2024 Data Center Energy Usage Report"
+/>
+
+Here is the comparison that resets the conversation. In 2024, every data center in the country combined used less electricity than Americans running their home air conditioners.
+
+<Stat
+  big="Data centers < home A/C"
+  desc="All U.S. data centers used about 183 TWh of electricity in 2024. U.S. residential air conditioning alone used about 254 TWh (2020, the latest detailed federal estimate)."
+  source="U.S. Energy Information Administration; LBNL/DOE"
+/>
+
+Worldwide it's a smaller slice still: data centers use just over 1% of global electricity.<sup><a href="#source-3">3</a></sup> And while that number is climbing, data centers are only about 8% of the *growth* in global electricity demand expected this decade, behind both electric vehicles and air conditioning.<sup><a href="#source-3">3</a></sup>
+
+<Stat
+  big="~8% of demand growth"
+  desc="Data centers account for roughly 8% of the projected growth in global electricity demand through 2030, less than electric vehicles or air conditioning."
+  source="Carbon Brief, citing the IEA's Energy and AI report (2025)"
+/>
+
+The per-question scare doesn't hold up either. A typical ChatGPT query uses about 0.3 watt-hours, roughly what an LED bulb or a laptop draws in a few minutes, not the viral figure that was an order of magnitude higher.<sup><a href="#source-4">4</a></sup>
+
+<h2><span class="num">03</span>Where the real concern is</h2>
+
+Here's what the "grid apocalypse" framing buries: the legitimate fight isn't about the national total. It's about **who pays for the buildout, and what gets burned to power it.** Both are going the wrong way, and both are fixable.
+
+On cost, the grid operator for 65 million people across the mid-Atlantic and Midwest just ran the most expensive capacity auction in its history, and its own independent market monitor put data centers at the center of it.
+
+<Stat
+  big="40% of $16.4B"
+  desc="Data center load accounted for about 40% of the costs in PJM's record December 2025 capacity auction. The squeeze could raise electricity bills 1.5% to 5% across the region."
+  source="PJM's Independent Market Monitor (Monitoring Analytics), via Utility Dive"
+/>
+
+Researchers at Harvard's Electricity Law Initiative reviewed nearly 50 regulatory proceedings and found utilities are increasingly shifting the cost of serving data centers onto everyday ratepayers; in Virginia, that could mean $150 to $450 more per household per year by 2040 under current rules.<sup><a href="#source-6">6</a></sup>
+
+And what powers all of it is sliding backward. Utilities have delayed the retirement of at least 15 coal plants, partly to serve projected data-center demand,<sup><a href="#source-7">7</a></sup> and in Memphis, xAI ran dozens of gas turbines next to a predominantly Black neighborhood that already carries some of the state's worst asthma rates, before securing the usual air permits.<sup><a href="#source-8">8</a></sup> That is the real cost, and it lands on specific communities.
+
+<TalkingPoints
+  points={[
+    {
+      text: 'All U.S. data centers used less electricity in 2024 than American home air conditioning.',
+      source: 'U.S. Energy Information Administration; LBNL/DOE',
+    },
+    {
+      text: 'Data centers are about 8% of the growth in global electricity demand this decade, behind EVs and air conditioning.',
+      source: 'Carbon Brief, citing IEA Energy and AI (2025)',
+    },
+    {
+      text: 'A typical ChatGPT query uses about 0.3 watt-hours, roughly an LED bulb for a couple of minutes.',
+      source: 'Epoch AI',
+    },
+    {
+      text: "The real AI energy fight isn't whether the grid can cope. It's who pays for the buildout and what powers it.",
+      source: 'PJM Monitoring Analytics; Harvard Electricity Law Initiative',
+    },
+  ]}
+  url="https://progressivesforai.com/reality-check/energy"
+/>
+
+<div class="real-move">
+  <h2><span class="num">04</span>The progressive move</h2>
+  <p>Don't fight the data center. Fight the bad deal. Make Big Tech, not families, pay for the grid upgrades its facilities require, through cost-causation rate design and the kind of rules Virginia and federal regulators are now testing. Tie the buildout to clean firm power; the wave of nuclear and geothermal deals shows it can be done, and push for around-the-clock clean matching instead of paper credits. And block the fossil lock-in, especially where it dumps pollution on the communities least able to fight back. The grid can handle AI. The question is who pays for it, and whether it runs clean.</p>
+</div>
+
+<div class="graphics">
+  <span class="tag">Roadmap — coming soon</span>
+  <div>Shareable graphics and memes for this page</div>
+  <div class="row"><div class="thumb">stat card</div><div class="thumb">comparison</div><div class="thumb">meme</div></div>
+</div>
+
+<Sources
+  sources={[
+    {
+      title: 'Lawrence Berkeley National Laboratory / U.S. DOE — 2024 Data Center Energy Usage Report',
+      url: 'https://newscenter.lbl.gov/2025/01/15/berkeley-lab-report-evaluates-increase-in-electricity-demand-from-data-centers/',
+      verified: '2026-06-13',
+      note: 'U.S. data centers = 4.4% of U.S. electricity in 2023 (176 TWh); 6.7-12% projected by 2028.',
+    },
+    {
+      title: 'U.S. Energy Information Administration — residential air conditioning and data center electricity use',
+      url: 'https://www.eia.gov/tools/faqs/faq.php?id=1174&t=1',
+      verified: '2026-06-13',
+      note: 'U.S. residential A/C used ~254 TWh (2020); basis for the data-center-vs-A/C comparison.',
+    },
+    {
+      title: 'Carbon Brief — Five charts that put data-centre energy use into context',
+      url: 'https://www.carbonbrief.org/ai-five-charts-that-put-data-centre-energy-use-and-emissions-into-context/',
+      verified: '2026-06-13',
+      note: 'Global data centers just over 1% of electricity; ~8% of demand growth to 2030, behind EVs and A/C (IEA data).',
+    },
+    {
+      title: 'Epoch AI — How much energy does ChatGPT use?',
+      url: 'https://epoch.ai/gradient-updates/how-much-energy-does-chatgpt-use',
+      verified: '2026-06-13',
+      note: 'A typical query uses about 0.3 watt-hours; debunks the viral 10x-a-search figure.',
+    },
+    {
+      title: 'Utility Dive — Data centers were 40% of PJM capacity auction costs',
+      url: 'https://www.utilitydive.com/news/data-centers-pjm-capacity-auction/808951/',
+      verified: '2026-06-13',
+      note: "PJM's Independent Market Monitor: data centers = ~40% of the $16.4B December 2025 capacity auction.",
+    },
+    {
+      title: "Harvard Magazine — How AI Could Be Raising Your Energy Bill (Harvard Electricity Law Initiative)",
+      url: 'https://www.harvardmagazine.com/2025/07/harvard-ai-increasing-energy-costs',
+      verified: '2026-06-13',
+      note: 'Peskoe & Martin: utilities shifting data-center costs to ratepayers; $150-450/household/year in Virginia by 2040.',
+    },
+    {
+      title: 'DeSmog — 15 coal plant retirements delayed amid AI data center demand',
+      url: 'https://www.desmog.com/2025/12/12/15-coal-plant-retirements-delayed-ai-data-centers-trump-doe-orders/',
+      verified: '2026-06-13',
+      note: 'At least 15 coal plants had retirements pushed back, partly citing data-center demand.',
+    },
+    {
+      title: 'Inside Climate News — Elon Musk\'s xAI gas turbines in Memphis',
+      url: 'https://insideclimatenews.org/news/17072025/elon-musk-xai-data-center-gas-turbines-memphis/',
+      verified: '2026-06-13',
+      note: 'xAI ran gas turbines near a majority-Black Memphis neighborhood with high asthma rates before securing air permits.',
+    },
+  ]}
+/>
