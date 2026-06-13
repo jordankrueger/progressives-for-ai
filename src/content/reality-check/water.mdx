@@ -1,0 +1,117 @@
+---
+title: "Does AI really waste all our water?"
+dek: "AI's water use is real, but it's tiny at the national scale: U.S. golf courses use roughly three times more water than every data center in the country combined. The fight worth having is local, where a single big facility can strain an already-stressed community, not a scary national statistic."
+category: "myth"
+topic: "Environment"
+published: 2026-06-13
+updated: 2026-06-13
+readingTime: 6
+sourceCount: 4
+changelog:
+  - date: "Jun 2026"
+    note: "First published."
+---
+
+import Stat from '../../components/Stat.astro';
+import TalkingPoints from '../../components/TalkingPoints.astro';
+import Sources from '../../components/Sources.astro';
+
+<h2><span class="num">01</span>What you've heard</h2>
+
+<div class="heard">"AI is draining our water. Every chatbot question 'drinks' a bottle of water, and data centers are sucking communities dry."</div>
+
+You have probably seen the memes: a data center as a giant straw in a dry lakebed. The worry is real enough to take seriously. It is also, at the national level, badly out of proportion.
+
+<h2><span class="num">02</span>What's actually true</h2>
+
+Start with the comparison that ends most arguments.
+
+<Stat
+  big="≈ 3×"
+  desc="U.S. golf courses use about three times more water than every data center in the country combined: roughly 476 to 531 billion gallons a year for golf, against about 163 billion for all U.S. data centers, counting even the water used to generate their electricity."
+  source="USGA / Center for Irrigation Technology; Ars Technica (2026), citing a 2021 Nature study"
+/>
+
+Zoom out and data centers nearly vanish. The United States withdrew about 117 trillion gallons of water in a single year. All of its data centers combined come to well under two-tenths of one percent of that.<sup><a href="#source-1">1</a></sup>
+
+<Stat
+  big="117 trillion gal"
+  desc="Total U.S. water withdrawn in a year. All U.S. data centers combined: about 163 billion gallons, under 0.2% of that."
+  source="Ars Technica (2026), citing USGS and a 2021 Nature study"
+/>
+
+Plenty of ordinary things use far more. U.S. lawns and landscaping drink about 3.3 trillion gallons a year. California's almond orchards use about 1.3 trillion. Each of those alone dwarfs every data center in the country.<sup><a href="#source-1">1</a></sup>
+
+<Stat
+  big="Lawns 3.3T · Almonds 1.3T"
+  desc="U.S. lawns and landscaping, and California almond orchards, each use far more water per year than all U.S. data centers (~163 billion gallons)."
+  source="Ars Technica (2026)"
+/>
+
+Even the biggest individual companies are a rounding error against the national total: Amazon reported its data centers withdrew about 2.5 billion gallons globally in 2025, and Google's used about 6.1 billion in 2024.<sup><a href="#source-1">1</a></sup> The "a bottle of water per question" line that powers most of the memes takes a real but tiny per-use number and scales it into a big, scary-sounding total. Useful as a metaphor, misleading as a national tally.<sup><a href="#source-1">1</a></sup><sup><a href="#source-3">3</a></sup>
+
+<h2><span class="num">03</span>Where the real concern is</h2>
+
+Here is the part the memes get right, just for the wrong reason. The honest worry isn't the national total. It's **local**. A data center draws its water from one place, and in the wrong place that draw really bites.
+
+A single Meta data center in Newton County, Georgia now uses about 10 percent of the entire county's water supply. The Interstate Commission on the Potomac River Basin estimates data centers already account for about 8 percent of the region's water use, and could reach 29 percent by 2050 if northern Virginia keeps building at its current pace. Texas data centers used somewhere between 25 and 49 billion gallons in 2024, a number projected to climb toward 399 billion by 2030. And roughly 40 percent of planned and existing U.S. data centers sit in areas of high or extremely high water scarcity.<sup><a href="#source-1">1</a></sup><sup><a href="#source-4">4</a></sup>
+
+That is a real, specific, winnable fight, and a very different one from "AI is an environmental catastrophe."
+
+<TalkingPoints
+  points={[
+    {
+      text: 'U.S. golf courses use about 3x more water than every data center in the country, combined.',
+      source: 'USGA / Center for Irrigation Technology; Ars Technica (2026)',
+    },
+    {
+      text: 'All U.S. data centers together use under 0.2% of the water the country withdraws each year.',
+      source: 'Ars Technica (2026), citing a 2021 Nature study',
+    },
+    {
+      text: "AI's water problem is local, not national. The answer is smart siting and recycling rules, not blanket opposition.",
+      source: 'Ars Technica (2026)',
+    },
+  ]}
+  url="https://progressivesforai.com/reality-check/water"
+/>
+
+<div class="real-move">
+  <h2><span class="num">04</span>The progressive move</h2>
+  <p>Don't hand the water issue over to bad math. Push for the things that actually protect communities: public-interest siting rules, requirements to recycle cooling water and run hotter or air-cooled where possible, and real transparency about how much a facility draws locally. The goal isn't to stop the build. It's to make sure the towns hosting this infrastructure share in the benefits instead of just absorbing the costs.</p>
+</div>
+
+<div class="graphics">
+  <span class="tag">Roadmap — coming soon</span>
+  <div>Shareable graphics and memes for this page</div>
+  <div class="row"><div class="thumb">stat card</div><div class="thumb">comparison</div><div class="thumb">meme</div></div>
+</div>
+
+<Sources
+  sources={[
+    {
+      title: 'Ars Technica — "When it comes to total water use, AI data centers are a drop in the bucket"',
+      url: 'https://arstechnica.com/ai/2026/06/when-it-comes-to-total-water-use-ai-data-centers-are-a-drop-in-the-bucket/',
+      verified: '2026-06-13',
+      note: 'National water totals, per-company figures, Newton County, Potomac basin, Texas, and water-scarcity siting.',
+    },
+    {
+      title: 'USGA / Center for Irrigation Technology — How much water does golf use?',
+      url: 'https://www.usga.org/content/dam/usga/pdf/Water%20Resource%20Center/how-much-water-does-golf-use.pdf',
+      verified: '2026-04-27',
+      note: 'U.S. golf course water use (~476 billion gallons/year).',
+    },
+    {
+      title: 'EESI — Data Centers and Water Consumption',
+      url: 'https://www.eesi.org/articles/view/data-centers-and-water-consumption',
+      verified: '2026-04-27',
+      note: 'Context on data center water consumption and the per-query "bottle of water" estimate.',
+    },
+    {
+      title: 'Lincoln Institute of Land Policy — Data Drain: Land and Water Impacts of Data Centers',
+      url: 'https://www.lincolninst.edu/publications/land-lines-magazine/articles/land-water-impacts-data-centers/',
+      verified: '2026-04-27',
+      note: 'Regional and state-level data center water impacts.',
+    },
+  ]}
+/>
