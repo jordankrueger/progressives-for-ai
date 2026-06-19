@@ -15,6 +15,7 @@ const description = "A pro-AI, pro-accountability newsletter for progressives wh
 
             <NewsletterSignup formId="gcsForm" />
             <p class="form-note">A free newsletter. No hype, no doom, no spam. Unsubscribe anytime.</p>
+            <p class="hero-archive"><a href="/archive">Want to read a few past issues first? Browse the archive →</a></p>
         </div>
     </section>
 
@@ -50,7 +51,7 @@ const description = "A pro-AI, pro-accountability newsletter for progressives wh
     <section class="why-matters">
         <div class="container">
             <h2 class="section-title">What we're actually writing about</h2>
-            <p class="section-subtitle">A few things from the newsletter and our Reality Check series you might want to argue with.</p>
+            <p class="section-subtitle">A few things from the newsletter and our Reality Check series worth a read.</p>
 
             <div class="priorities-grid">
                 <a class="priority-card linked" href="/reality-check/energy/">
@@ -93,6 +94,22 @@ const description = "A pro-AI, pro-accountability newsletter for progressives wh
         font-weight: 600;
         color: var(--primary);
         margin-bottom: 1rem;
+    }
+
+    .gcs-hero .hero-archive {
+        margin-top: 0.75rem;
+    }
+
+    .gcs-hero .hero-archive a {
+        font-weight: 600;
+        color: var(--primary);
+        text-decoration: none;
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 1px;
+    }
+
+    .gcs-hero .hero-archive a:hover {
+        border-bottom-color: var(--primary);
     }
 
     .priority-card.linked {
