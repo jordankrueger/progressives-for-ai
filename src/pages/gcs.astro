@@ -1,0 +1,132 @@
+---
+import Base from '../layouts/Base.astro';
+import NewsletterSignup from '../components/NewsletterSignup.astro';
+
+const title = 'Progressives for AI — for the skeptics in the room';
+const description = "A pro-AI, pro-accountability newsletter for progressives who are wary of AI for good reasons. We name what AI is doing wrong, and fight for who it should work for.";
+---
+
+<Base title={title} description={description}>
+    <section class="hero gcs-hero">
+        <div class="container">
+            <p class="eyebrow">For fellow organizers, comms folks &amp; movement people</p>
+            <h1>Skeptical of AI?<br><span>Good. So are we.</span></h1>
+            <p>You've watched AI get used to fake grassroots, surveil communities, and hand more power to the people who already have too much. So have we. <strong>Progressives for AI</strong> exists because the answer to that isn't to walk away from the table—it's to fight for who this technology actually works for.</p>
+
+            <NewsletterSignup formId="gcsForm" />
+            <p class="form-note">A free newsletter. No hype, no doom, no spam. Unsubscribe anytime.</p>
+        </div>
+    </section>
+
+    <section class="concerns">
+        <div class="container">
+            <h2 class="section-title">Where we draw the line</h2>
+            <p class="section-subtitle">We're pro-AI. We're not naive about it. Here's what we're against—loudly.</p>
+
+            <div class="concerns-list">
+                <div class="concern-item">
+                    <h3><span class="icon">📣</span> Faking the grassroots</h3>
+                    <p>AI-generated comment floods that drown out real people and trick officials into thinking the public has spoken—like the 20,000 fake comments that helped kill a California air-quality rule. Astroturf was bad enough before AI made it cheap. We call it out, and we help organizers tell the difference.</p>
+                </div>
+
+                <div class="concern-item">
+                    <h3><span class="icon">👁️</span> Surveillance &amp; automated authoritarianism</h3>
+                    <p>AI pointed at immigrants, protesters, and ordinary people—mass surveillance, predictive policing, ICE automation, AI weapons. None of this is inevitable, and all of it is worth fighting. We track it and point to the people fighting back.</p>
+                </div>
+
+                <div class="concern-item">
+                    <h3><span class="icon">🏢</span> Corporate concentration</h3>
+                    <p>A handful of companies want to own the most powerful technology of our time. The answer isn't blanket opposition—it's antitrust, open-source, public investment, and worker power. Ceding the field guarantees the worst version wins.</p>
+                </div>
+
+                <div class="concern-item highlight">
+                    <h3><span class="icon">⚖️</span> Workers paying the price</h3>
+                    <p>We don't pretend job displacement isn't real. We fight for the policies that make AI's gains shared instead of hoarded: stronger unions, retraining, shorter work weeks, productivity gains that reach the people doing the work.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="why-matters">
+        <div class="container">
+            <h2 class="section-title">What we're actually writing about</h2>
+            <p class="section-subtitle">A few things from the newsletter and our Reality Check series you might want to argue with.</p>
+
+            <div class="priorities-grid">
+                <a class="priority-card linked" href="/reality-check/energy/">
+                    <div class="priority-icon">⚡</div>
+                    <h3>Is AI guzzling all our electricity?</h3>
+                    <p>The data-center energy fight, with proportion. What's real, what's overblown, and where to actually push.</p>
+                    <span class="card-link">Read the Reality Check →</span>
+                </a>
+
+                <a class="priority-card linked" href="/reality-check/water/">
+                    <div class="priority-icon">💧</div>
+                    <h3>Does AI really waste all our water?</h3>
+                    <p>The water-use numbers you've seen, put in context—without waving the concern away.</p>
+                    <span class="card-link">Read the Reality Check →</span>
+                </a>
+
+                <a class="priority-card linked" href="/archive">
+                    <div class="priority-icon">📰</div>
+                    <h3>The newsletter</h3>
+                    <p>Weekly, plainspoken: AI news through a progressive lens, one concrete "put AI to work for your org" tip, and a guaranteed progressive AI win. Read a few past issues before you subscribe.</p>
+                    <span class="card-link">Browse the archive →</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="gcs-close">
+        <div class="container">
+            <h2>We'd rather have you in the room</h2>
+            <p>If "pro-AI" still makes you wince, that's fair—and it's exactly why we want you reading. The progressives who stay skeptical and engaged are the ones who'll shape where this goes. Subscribe below, disagree with us, forward it to someone who'd push back harder.</p>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .gcs-hero .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .priority-card.linked {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .priority-card.linked:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(30, 107, 79, 0.12);
+    }
+
+    .priority-card .card-link {
+        display: inline-block;
+        margin-top: 1rem;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .gcs-close {
+        background: var(--primary-light);
+        text-align: center;
+        padding: 4rem 0;
+    }
+
+    .gcs-close h2 {
+        margin-bottom: 1rem;
+    }
+
+    .gcs-close p:not(.form-note) {
+        max-width: 640px;
+        margin: 0 auto 1.5rem;
+        color: var(--text-muted);
+    }
+</style>
