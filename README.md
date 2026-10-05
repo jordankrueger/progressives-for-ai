@@ -88,9 +88,11 @@ progressives-for-ai/
 
 1. User enters email in form on `index.html`
 2. JavaScript sends POST request to Cloudflare Worker
-3. Worker validates email and calls ListMonk public subscription API
-4. ListMonk adds subscriber to the specified list
-5. User sees success message
+3. Worker validates email and selects the requested Listmonk list
+4. For `mission-control`, Worker validates Cloudflare Turnstile before any subscription call
+5. Worker calls Listmonk's authenticated subscriber API
+6. Listmonk adds subscriber to the specified list
+7. User sees success or error feedback
 
 ### Cloudflare Worker
 
@@ -106,6 +108,13 @@ Supports multiple lists via the `list` field in the request body:
 |----------|-------------|
 | `LISTMONK_URL` | `https://newsletter.campaign.help` |
 | `ALLOWED_ORIGINS` | Comma-separated origins (e.g. `https://progressivesforai.com,https://jordankrueger.com`) |
+| `LISTMONK_API_USER` | Listmonk API username |
+| `LISTMONK_API_PASSWORD` | Secret for the Listmonk API user |
+| `TURNSTILE_SECRET_KEY` | Secret for Jordan's hostname-scoped Turnstile widget; required only by `mission-control` |
+
+The Worker is shared. Do not require Jordan's Turnstile token for the default
+`progressives-for-ai` list unless the PfAI forms are also updated to render a
+compatible widget.
 
 ---
 
@@ -167,11 +176,11 @@ If you need to update the worker:
 3. Edit code or update environment variables
 4. Click "Save and Deploy"
 
-Or use Wrangler CLI:
+Or use Wrangler CLI from this repository root:
 
 ```bash
-cd worker
-wrangler publish
+CLOUDFLARE_API_TOKEN="$PERSONAL_CLOUDFLARE_API_TOKEN" \
+  npx wrangler deploy --config ./wrangler.toml
 ```
 
 ---
