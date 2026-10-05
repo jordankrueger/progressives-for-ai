@@ -19,6 +19,7 @@
 const LIST_IDS = {
   'progressives-for-ai': 3,
   'mission-control': 4,
+  'hsr-tv': 5,
 };
 
 const BONUS_EMAILS = {
@@ -85,7 +86,8 @@ export default {
     }
 
     try {
-      const { email, name, list, bonus } = await request.json();
+      const data = await request.json();
+      const { email, name, list, bonus } = data;
 
       if (!email || !isValidEmail(email)) {
         return jsonResponse({ error: 'Please enter a valid email address' }, 400, allowedOrigin);
@@ -95,6 +97,24 @@ export default {
       const listId = LIST_IDS[listKey];
       if (!listId) {
         return jsonResponse({ error: 'Invalid list' }, 400, allowedOrigin);
+      }
+
+      // This endpoint is shared with Progressives for AI. Jordan's widget is
+      // hostname-scoped, so require it only for the Mission Control forms.
+      if (listKey === 'mission-control') {
+        const turnstileValid = await verifyTurnstile(
+          data['cf-turnstile-response'],
+          env.TURNSTILE_SECRET_KEY,
+          request.headers.get('CF-Connecting-IP'),
+          'newsletter',
+        );
+        if (!turnstileValid) {
+          return jsonResponse(
+            { error: 'Please complete the security check and try again.' },
+            400,
+            allowedOrigin,
+          );
+        }
       }
 
       const listmonkUrl = env.LISTMONK_URL || 'https://newsletter.campaign.help';
@@ -167,6 +187,36 @@ export default {
     }
   },
 };
+
+async function verifyTurnstile(token, secret, remoteIp, expectedAction) {
+  if (!token || !secret || typeof token !== 'string') return false;
+
+  const body = new URLSearchParams({ secret, response: token.slice(0, 2048) });
+  if (remoteIp) body.set('remoteip', remoteIp);
+
+  try {
+    const response = await fetch(
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+        signal: AbortSignal.timeout(10000),
+      },
+    );
+    if (!response.ok) return false;
+
+    const result = await response.json();
+    return Boolean(
+      result.success &&
+      ['jordankrueger.com', 'www.jordankrueger.com'].includes(result.hostname) &&
+      result.action === expectedAction
+    );
+  } catch (error) {
+    console.error('Turnstile validation failed', error);
+    return false;
+  }
+}
 
 function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
