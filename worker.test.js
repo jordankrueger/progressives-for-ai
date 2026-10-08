@@ -216,7 +216,7 @@ test('409 but lookup finds nobody: 500, no add call', async (t) => {
   assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
 });
 
-test('an email with a quote is doubled in the lookup; one with a backslash is refused before lookup', async (t) => {
+test('an email with a quote is doubled in the lookup; one with a backslash skips the lookup', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
   let calls = listmonkMock({ lookup: [{ id: 9, status: 'enabled' }] });
@@ -229,5 +229,48 @@ test('an email with a quote is doubled in the lookup; one with a backslash is re
   calls = listmonkMock({ lookup: [{ id: 9, status: 'enabled' }] });
   const response = await worker.fetch(request({ list: 'hsr-tv', email: 'a\\b@example.com' }), env);
   assert.equal(calls.filter(c => c.method === 'GET').length, 0);
-  assert.equal(response.status, 500);
+  assert.equal(response.status, 200);
+});
+
+// --- Codex review fixes ---
+
+const hsrList = (subscription_status) => [{ id: 5, name: 'HSR', subscription_status }];
+
+for (const [status, label] of [['unsubscribed', 'unsubscribed'], ['confirmed', 'already confirmed'], ['unconfirmed', 'already unconfirmed']]) {
+  test(`existing membership (${label}) on the requested list: no PUT, generic success`, async (t) => {
+    const originalFetch = globalThis.fetch;
+    t.after(() => { globalThis.fetch = originalFetch; });
+    const calls = listmonkMock({ lookup: [{ id: 77, status: 'enabled', lists: hsrList(status) }] });
+
+    const response = await worker.fetch(request({ list: 'hsr-tv' }), env);
+
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).success, true);
+    assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
+  });
+}
+
+test('on other lists only (requested list absent): PUT is made', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const calls = listmonkMock({
+    lookup: [{ id: 77, status: 'enabled', lists: [{ id: 3, name: 'PFAI', subscription_status: 'confirmed' }] }],
+  });
+
+  const response = await worker.fetch(request({ list: 'hsr-tv' }), env);
+
+  assert.equal(response.status, 200);
+  assert.equal(calls.filter(c => c.method === 'PUT').length, 1);
+});
+
+test('email the lookup cannot take (non-ASCII): old behavior, 200 already-subscribed, no lookup', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const calls = listmonkMock({ lookup: [{ id: 77, status: 'enabled', lists: [] }] });
+
+  const response = await worker.fetch(request({ list: 'hsr-tv', email: 'user@bücher.de' }), env);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { success: true, message: "You're already subscribed." });
+  assert.deepEqual(calls.map(c => c.method), ['POST']);
 });

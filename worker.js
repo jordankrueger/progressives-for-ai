@@ -202,11 +202,12 @@ export default {
 const LOOKUP_SAFE_EMAIL = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9-]+$/;
 
 // Returns true when the subscriber is on the list afterwards (or is blocklisted and
-// must be left alone); false on any failure. Never logs the email.
+// must be left alone, or the email can't be looked up); false on any failure. Never logs the email.
 async function addExistingToList(listmonkUrl, authHeader, email, listId) {
   if (!LOOKUP_SAFE_EMAIL.test(email)) {
+    // Can't be put in the lookup safely: fall back to the old behavior (generic success).
     console.error('Existing subscriber lookup skipped: email failed strict check');
-    return false;
+    return true;
   }
   const headers = { 'Content-Type': 'application/json', 'Authorization': authHeader };
   const query = `LOWER(subscribers.email) = '${email.toLowerCase().replace(/'/g, "''")}'`;
@@ -223,6 +224,8 @@ async function addExistingToList(listmonkUrl, authHeader, email, listId) {
     }
     // Never re-add someone who was blocklisted; answer as if it worked.
     if (subscriber.status === 'blocklisted') return true;
+    // Already on the list in any state (including unsubscribed): leave it alone.
+    if ((subscriber.lists || []).some(l => l.id === listId)) return true;
 
     const add = await fetch(`${listmonkUrl}/api/subscribers/lists`, {
       method: 'PUT',
