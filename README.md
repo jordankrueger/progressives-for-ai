@@ -101,6 +101,7 @@ progressives-for-ai/
 Supports multiple lists via the `list` field in the request body:
 - `progressives-for-ai` (default) — PfAI newsletter
 - `mission-control` — Jordan's personal newsletter
+- `great-southern-brood` — Great Southern Brood mailing list (Listmonk list id 14, no Turnstile)
 
 **Environment Variables (set in Cloudflare Dashboard):**
 
