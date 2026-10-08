@@ -144,7 +144,7 @@ export default {
         },
         body: JSON.stringify({
           email,
-          name: name || email.split('@')[0],
+          name: (typeof name === 'string' && name) || email.split('@')[0],
           status: 'enabled',
           lists: [listId],
           preconfirm_subscriptions: true,
@@ -284,6 +284,7 @@ async function verifyTurnstile(token, secret, remoteIp, expectedAction) {
 }
 
 function isValidEmail(email) {
+  if (typeof email !== 'string') return false;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
@@ -304,6 +305,6 @@ function htmlResponse(data, status, allowedOrigin) {
   const message = data.success ? "You're on the list." : data.error;
   return new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${message}</title></head><body style="font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem"><p>${message}</p><p><a href="${allowedOrigin}">Back to the site</a></p></body></html>`,
-    { status, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+    { status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Access-Control-Allow-Origin': allowedOrigin } },
   );
 }

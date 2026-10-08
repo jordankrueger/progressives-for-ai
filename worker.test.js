@@ -416,3 +416,69 @@ test('JSON POST keeps its JSON response', async (t) => {
   assert.equal(response.headers.get('Content-Type'), 'application/json');
   assert.deepEqual(await response.json(), { success: true, message: 'Successfully subscribed!' });
 });
+
+// --- Codex review fixes: CORS on form responses, non-string multipart fields ---
+
+function multipart(origin, fields) {
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(fields)) fd.set(k, v);
+  return new Request('https://signup.example.com', { method: 'POST', headers: { Origin: origin }, body: fd });
+}
+const aFile = () => new File(['x'], 'x.txt', { type: 'text/plain' });
+
+test('HTML responses to form posts carry Access-Control-Allow-Origin for the allowed origin', async (t) => {
+  recordFetch(t);
+  const ok = await worker.fetch(post(
+    { Origin: 'https://hsr.fyi', 'Content-Type': 'application/x-www-form-urlencoded' },
+    'email=jordan%40example.com&list=hsr-tv'), allEnv);
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get('Access-Control-Allow-Origin'), 'https://hsr.fyi');
+  const bad = await worker.fetch(post(
+    { Origin: 'https://hsr.fyi', 'Content-Type': 'application/x-www-form-urlencoded' }, 'email=nope&list=hsr-tv'), allEnv);
+  assert.equal(bad.status, 400);
+  assert.equal(bad.headers.get('Access-Control-Allow-Origin'), 'https://hsr.fyi');
+});
+
+test('multipart email that is a File: 400 valid-email message, Listmonk never called', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(multipart('https://hsr.fyi', { email: aFile(), list: 'hsr-tv' }), allEnv);
+  assert.equal(response.status, 400);
+  assert.ok((await response.text()).includes('Please enter a valid email address'));
+  assert.equal(calls.length, 0);
+});
+
+test('multipart list that is a File: 400 Invalid list, Listmonk never called', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    multipart('https://hsr.fyi', { email: 'jordan@example.com', list: aFile() }), allEnv);
+  assert.equal(response.status, 400);
+  assert.ok((await response.text()).includes('Invalid list'));
+  assert.equal(calls.length, 0);
+});
+
+test('multipart name that is a File: ignored, Listmonk gets the email prefix as a string', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    multipart('https://hsr.fyi', { email: 'jordan@example.com', list: 'hsr-tv', name: aFile() }), allEnv);
+  assert.equal(response.status, 200);
+  assert.equal(JSON.parse(calls[0].body).name, 'jordan');
+});
+
+test('multipart bonus that is a File on mission-control: no Resend call', async (t) => {
+  const calls = recordFetch(t, (url) => url.includes('/siteverify')
+    ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
+    : Response.json({ data: { id: 1 } }));
+  const response = await worker.fetch(multipart('https://jordankrueger.com', {
+    email: 'jordan@example.com', list: 'mission-control', 'cf-turnstile-response': 'valid-token', bonus: aFile(),
+  }), allEnv);
+  assert.equal(response.status, 200);
+  assert.ok(!calls.some(c => c.url.includes('resend.com')));
+});
+
+test('non-string email (array that stringifies to a valid address): 400, Listmonk never called', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(post({ Origin: 'https://hsr.fyi', 'Content-Type': 'application/json' },
+    { email: ['jordan@example.com'], list: 'hsr-tv' }), allEnv);
+  assert.equal(response.status, 400);
+  assert.equal(calls.length, 0);
+});
