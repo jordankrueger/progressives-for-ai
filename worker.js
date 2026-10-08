@@ -20,6 +20,7 @@ const LIST_IDS = {
   'progressives-for-ai': 3,
   'mission-control': 4,
   'hsr-tv': 5,
+  'great-southern-brood': 14,
 };
 
 const BONUS_EMAILS = {

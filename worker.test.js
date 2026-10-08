@@ -95,3 +95,43 @@ test('keeps the shared Progressives for AI signup path working without Jordan Tu
   assert.equal(response.status, 200);
   assert.deepEqual(urls, ['https://newsletter.example.com/api/subscribers']);
 });
+
+test('subscribes Great Southern Brood signups to list 14 with no Turnstile and allows that origin', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), body: JSON.parse(init.body) });
+    return Response.json({ data: { id: 1 } });
+  };
+  const gsbEnv = {
+    ...env,
+    ALLOWED_ORIGINS: 'https://jordankrueger.com,https://greatsouthernbrood.com',
+  };
+
+  const response = await worker.fetch(new Request('https://signup.example.com', {
+    method: 'POST',
+    headers: { Origin: 'https://greatsouthernbrood.com', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'jordan@example.com', list: 'great-southern-brood' }),
+  }), gsbEnv);
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://greatsouthernbrood.com');
+  assert.deepEqual(calls.map(c => c.url), ['https://newsletter.example.com/api/subscribers']);
+  assert.deepEqual(calls[0].body.lists, [14]);
+});
+
+test('wrangler.toml allows the Great Southern Brood origin alongside the existing ones', async () => {
+  const { readFileSync } = await import('node:fs');
+  const line = readFileSync(new URL('./wrangler.toml', import.meta.url), 'utf8')
+    .split('\n').find(l => l.startsWith('ALLOWED_ORIGINS'));
+  const origins = line.match(/"(.*)"/)[1].split(',');
+  assert.deepEqual(origins, [
+    'https://progressivesforai.com',
+    'https://jordankrueger.com',
+    'https://groundedai.help',
+    'https://highspeedrail.tv',
+    'https://hsr.fyi',
+    'https://greatsouthernbrood.com',
+  ]);
+});
