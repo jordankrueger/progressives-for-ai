@@ -472,7 +472,7 @@ test('multipart bonus that is a File on mission-control: no Resend call', async 
     email: 'jordan@example.com', list: 'mission-control', 'cf-turnstile-response': 'valid-token', bonus: aFile(),
   }), allEnv);
   assert.equal(response.status, 200);
-  assert.ok(!calls.some(c => c.url.includes('resend.com')));
+  assert.ok(!calls.some(c => new URL(c.url).hostname === 'api.resend.com'));
 });
 
 test('non-string email (array that stringifies to a valid address): 400, Listmonk never called', async (t) => {
