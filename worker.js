@@ -147,6 +147,11 @@ export default {
         const errMsg = (errorData && errorData.message) || '';
         // Already-subscribed is success from the user's perspective.
         if (listmonkResponse.status === 409 || /already exists|duplicate/i.test(errMsg)) {
+          // Exists on some list already: add the requested list, leave their other lists alone.
+          const added = await addExistingToList(listmonkUrl, authHeader, email, listId);
+          if (!added) {
+            return jsonResponse({ error: 'Unable to subscribe. Please try again.' }, 500, allowedOrigin);
+          }
           return jsonResponse({ success: true, message: 'You\'re already subscribed.' }, 200, allowedOrigin);
         }
         console.error('ListMonk API error:', listmonkResponse.status, errorData);
@@ -188,6 +193,52 @@ export default {
     }
   },
 };
+
+// Listmonk v6 has no email lookup parameter on GET /api/subscribers, only a raw SQL
+// `query`. The email is interpolated into a single-quoted Postgres string, so it must
+// match this allowlist (no backslash, double quote, semicolon, whitespace or parens)
+// and have its single quotes doubled. With standard_conforming_strings on (Postgres
+// default) nothing else can end the literal.
+const LOOKUP_SAFE_EMAIL = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9-]+$/;
+
+// Returns true when the subscriber is on the list afterwards (or is blocklisted and
+// must be left alone); false on any failure. Never logs the email.
+async function addExistingToList(listmonkUrl, authHeader, email, listId) {
+  if (!LOOKUP_SAFE_EMAIL.test(email)) {
+    console.error('Existing subscriber lookup skipped: email failed strict check');
+    return false;
+  }
+  const headers = { 'Content-Type': 'application/json', 'Authorization': authHeader };
+  const query = `LOWER(subscribers.email) = '${email.toLowerCase().replace(/'/g, "''")}'`;
+  try {
+    const lookup = await fetch(`${listmonkUrl}/api/subscribers?${new URLSearchParams({ query, per_page: '1' })}`, { headers });
+    if (!lookup.ok) {
+      console.error('ListMonk subscriber lookup failed:', lookup.status);
+      return false;
+    }
+    const subscriber = ((await lookup.json()).data?.results || [])[0];
+    if (!subscriber) {
+      console.error('ListMonk subscriber lookup found no match after 409');
+      return false;
+    }
+    // Never re-add someone who was blocklisted; answer as if it worked.
+    if (subscriber.status === 'blocklisted') return true;
+
+    const add = await fetch(`${listmonkUrl}/api/subscribers/lists`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ ids: [subscriber.id], action: 'add', target_list_ids: [listId], status: 'confirmed' }),
+    });
+    if (!add.ok) {
+      console.error('ListMonk add-to-list failed:', add.status);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('ListMonk add-to-list error:', error.name);
+    return false;
+  }
+}
 
 async function verifyTurnstile(token, secret, remoteIp, expectedAction) {
   if (!token || !secret || typeof token !== 'string') return false;
