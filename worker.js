@@ -68,8 +68,14 @@ Jordan`,
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
-    const allowedOrigins = (env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim());
-    const allowedOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*';
+    const allowedOrigins = (env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+    const originAllowed = allowedOrigins.includes(origin);
+
+    // Browsers always send Origin on cross-origin POSTs, including native form posts.
+    if ((request.method === 'OPTIONS' || request.method === 'POST') && !originAllowed) {
+      return jsonResponse({ error: 'Forbidden' }, 403, '');
+    }
+    const allowedOrigin = originAllowed ? origin : '';
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -86,18 +92,25 @@ export default {
       return jsonResponse({ error: 'Method not allowed' }, 405, allowedOrigin);
     }
 
+    // Native (no-JavaScript) form posts get an HTML page back; JSON callers keep JSON.
+    const contentType = request.headers.get('Content-Type') || '';
+    const isForm = /^(application\/x-www-form-urlencoded|multipart\/form-data)/i.test(contentType);
+    const reply = (data, status) => isForm
+      ? htmlResponse(data, status, allowedOrigin)
+      : jsonResponse(data, status, allowedOrigin);
+
     try {
-      const data = await request.json();
+      const data = isForm ? Object.fromEntries(await request.formData()) : await request.json();
       const { email, name, list, bonus } = data;
 
       if (!email || !isValidEmail(email)) {
-        return jsonResponse({ error: 'Please enter a valid email address' }, 400, allowedOrigin);
+        return reply({ error: 'Please enter a valid email address' }, 400);
       }
 
       const listKey = list || 'progressives-for-ai';
       const listId = LIST_IDS[listKey];
       if (!listId) {
-        return jsonResponse({ error: 'Invalid list' }, 400, allowedOrigin);
+        return reply({ error: 'Invalid list' }, 400);
       }
 
       // This endpoint is shared with Progressives for AI. Jordan's widget is
@@ -110,11 +123,7 @@ export default {
           'newsletter',
         );
         if (!turnstileValid) {
-          return jsonResponse(
-            { error: 'Please complete the security check and try again.' },
-            400,
-            allowedOrigin,
-          );
+          return reply({ error: 'Please complete the security check and try again.' }, 400);
         }
       }
 
@@ -123,7 +132,7 @@ export default {
       const apiPassword = env.LISTMONK_API_PASSWORD;
       if (!apiPassword) {
         console.error('LISTMONK_API_PASSWORD secret not set');
-        return jsonResponse({ error: 'Server misconfigured. Please try again.' }, 500, allowedOrigin);
+        return reply({ error: 'Server misconfigured. Please try again.' }, 500);
       }
       const authHeader = 'Basic ' + btoa(`${apiUser}:${apiPassword}`);
 
@@ -150,16 +159,17 @@ export default {
           // Exists on some list already: add the requested list, leave their other lists alone.
           const added = await addExistingToList(listmonkUrl, authHeader, email, listId);
           if (!added) {
-            return jsonResponse({ error: 'Unable to subscribe. Please try again.' }, 500, allowedOrigin);
+            return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
           }
-          return jsonResponse({ success: true, message: 'You\'re already subscribed.' }, 200, allowedOrigin);
+          return reply({ success: true, message: 'You\'re already subscribed.' }, 200);
         }
         console.error('ListMonk API error:', listmonkResponse.status, errorData);
-        return jsonResponse({ error: 'Unable to subscribe. Please try again.' }, 500, allowedOrigin);
+        return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
       }
 
       // Optional: fire bonus welcome email via Resend
-      if (bonus && BONUS_EMAILS[bonus] && env.RESEND_API_KEY) {
+      // Only the Turnstile-gated list may trigger a bonus email.
+      if (listKey === 'mission-control' && bonus && Object.hasOwn(BONUS_EMAILS, bonus) && env.RESEND_API_KEY) {
         const bonusEmail = BONUS_EMAILS[bonus];
         try {
           const resendResp = await fetch('https://api.resend.com/emails', {
@@ -185,11 +195,11 @@ export default {
         }
       }
 
-      return jsonResponse({ success: true, message: 'Successfully subscribed!' }, 200, allowedOrigin);
+      return reply({ success: true, message: 'Successfully subscribed!' }, 200);
 
     } catch (error) {
       console.error('Worker error:', error);
-      return jsonResponse({ error: 'Something went wrong. Please try again.' }, 500, allowedOrigin);
+      return reply({ error: 'Something went wrong. Please try again.' }, 500);
     }
   },
 };
@@ -283,7 +293,17 @@ function jsonResponse(data, status, allowedOrigin) {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': allowedOrigin || '*',
+      ...(allowedOrigin && { 'Access-Control-Allow-Origin': allowedOrigin }),
     },
   });
+}
+
+// Minimal page for native form posts. Echoes nothing from the request: the message is one of
+// our own fixed strings and the link goes to an origin already matched against the allowlist.
+function htmlResponse(data, status, allowedOrigin) {
+  const message = data.success ? "You're on the list." : data.error;
+  return new Response(
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${message}</title></head><body style="font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem"><p>${message}</p><p><a href="${allowedOrigin}">Back to the site</a></p></body></html>`,
+    { status, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+  );
 }

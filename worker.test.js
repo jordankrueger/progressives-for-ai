@@ -274,3 +274,145 @@ test('email the lookup cannot take (non-ASCII): old behavior, 200 already-subscr
   assert.deepEqual(await response.json(), { success: true, message: "You're already subscribed." });
   assert.deepEqual(calls.map(c => c.method), ['POST']);
 });
+
+// --- hardening: origin required, bonus only on mission-control, no-JS form posts ---
+
+const allEnv = {
+  ...env,
+  RESEND_API_KEY: 'resend_test',
+  ALLOWED_ORIGINS: 'https://jordankrueger.com,https://hsr.fyi,https://greatsouthernbrood.com',
+};
+
+function recordFetch(t, handler) {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), method: init.method || 'GET', body: init.body });
+    return handler ? handler(String(url)) : Response.json({ data: { id: 1 } });
+  };
+  return calls;
+}
+
+const post = (headers, body) => new Request('https://signup.example.com', {
+  method: 'POST',
+  headers,
+  body: typeof body === 'string' ? body : JSON.stringify(body),
+});
+
+test('POST with no Origin header: 403, no outbound calls', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    post({ 'Content-Type': 'application/json' }, { email: 'jordan@example.com', list: 'hsr-tv' }), allEnv);
+  assert.equal(response.status, 403);
+  assert.deepEqual(await response.json(), { error: 'Forbidden' });
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), null);
+  assert.equal(calls.length, 0);
+});
+
+test('POST from an origin not in ALLOWED_ORIGINS: 403, no outbound calls', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    post({ Origin: 'https://evil.example', 'Content-Type': 'application/json' },
+      { email: 'jordan@example.com', list: 'hsr-tv' }), allEnv);
+  assert.equal(response.status, 403);
+  assert.deepEqual(await response.json(), { error: 'Forbidden' });
+  assert.equal(calls.length, 0);
+});
+
+test('POST with no Origin is refused even when ALLOWED_ORIGINS is empty', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    post({ 'Content-Type': 'application/json' }, { email: 'jordan@example.com', list: 'hsr-tv' }),
+    { ...allEnv, ALLOWED_ORIGINS: '' });
+  assert.equal(response.status, 403);
+  assert.equal(calls.length, 0);
+});
+
+test('OPTIONS from a disallowed origin: 403 and no Access-Control-Allow-Origin', async () => {
+  const response = await worker.fetch(
+    new Request('https://signup.example.com', { method: 'OPTIONS', headers: { Origin: 'https://evil.example' } }), allEnv);
+  assert.equal(response.status, 403);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), null);
+});
+
+test('OPTIONS from an allowed origin echoes that origin', async () => {
+  const response = await worker.fetch(
+    new Request('https://signup.example.com', { method: 'OPTIONS', headers: { Origin: 'https://hsr.fyi' } }), allEnv);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://hsr.fyi');
+});
+
+test('bonus field on hsr-tv: subscribes, no Resend call', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    post({ Origin: 'https://hsr.fyi', 'Content-Type': 'application/json' },
+      { email: 'jordan@example.com', list: 'hsr-tv', bonus: 'ak-template' }), allEnv);
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls.map(c => c.url), ['https://newsletter.example.com/api/subscribers']);
+});
+
+test('bonus field on mission-control with a valid Turnstile token: Resend call is made', async (t) => {
+  const calls = recordFetch(t, (url) => url.includes('/siteverify')
+    ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
+    : Response.json({ data: { id: 1 } }));
+  const response = await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls.map(c => c.url), [
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    'https://newsletter.example.com/api/subscribers',
+    'https://api.resend.com/emails',
+  ]);
+});
+
+test('form-encoded POST from greatsouthernbrood.com: Listmonk list 14, HTML 200', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    post({ Origin: 'https://greatsouthernbrood.com', 'Content-Type': 'application/x-www-form-urlencoded' },
+      'email=jordan%40example.com&list=great-southern-brood'), allEnv);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
+  const html = await response.text();
+  assert.ok(html.includes("You're on the list."));
+  assert.ok(html.includes('href="https://greatsouthernbrood.com"'));
+  assert.deepEqual(calls.map(c => c.url), ['https://newsletter.example.com/api/subscribers']);
+  assert.deepEqual(JSON.parse(calls[0].body).lists, [14]);
+});
+
+test('multipart POST (mission-control form fields) works and runs Turnstile', async (t) => {
+  const calls = recordFetch(t, (url) => url.includes('/siteverify')
+    ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
+    : Response.json({ data: { id: 1 } }));
+  const fd = new FormData();
+  fd.set('email', 'jordan@example.com');
+  fd.set('list', 'mission-control');
+  fd.set('cf-turnstile-response', 'valid-token');
+  const response = await worker.fetch(
+    new Request('https://signup.example.com', { method: 'POST', headers: { Origin: 'https://jordankrueger.com' }, body: fd }), allEnv);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
+  assert.equal(calls.length, 2);
+});
+
+test('form-encoded POST with a bad email: HTML 400 that does not contain the submitted value', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    post({ Origin: 'https://greatsouthernbrood.com', 'Content-Type': 'application/x-www-form-urlencoded' },
+      'email=%3Cscript%3Ealert(1)%3C%2Fscript%3E&list=great-southern-brood'), allEnv);
+  assert.equal(response.status, 400);
+  assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
+  const html = await response.text();
+  assert.ok(html.includes('Please enter a valid email address'));
+  assert.ok(html.includes('href="https://greatsouthernbrood.com"'));
+  assert.ok(!html.includes('script'));
+  assert.equal(calls.length, 0);
+});
+
+test('JSON POST keeps its JSON response', async (t) => {
+  recordFetch(t);
+  const response = await worker.fetch(
+    post({ Origin: 'https://hsr.fyi', 'Content-Type': 'application/json' },
+      { email: 'jordan@example.com', list: 'hsr-tv' }), allEnv);
+  assert.equal(response.headers.get('Content-Type'), 'application/json');
+  assert.deepEqual(await response.json(), { success: true, message: 'Successfully subscribed!' });
+});
