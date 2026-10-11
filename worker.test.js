@@ -373,7 +373,7 @@ test('form-encoded POST from greatsouthernbrood.com: Listmonk list 14, HTML 200'
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
   const html = await response.text();
-  assert.ok(html.includes("You're on the list."));
+  assert.ok(html.includes("If this address is subscribed"));
   assert.ok(html.includes('href="https://greatsouthernbrood.com"'));
   assert.deepEqual(calls.map(c => c.url), ['https://newsletter.example.com/api/subscribers']);
   assert.deepEqual(JSON.parse(calls[0].body).lists, [14]);
@@ -482,3 +482,33 @@ test('non-string email (array that stringifies to a valid address): 400, Listmon
   assert.equal(response.status, 400);
   assert.equal(calls.length, 0);
 });
+
+// GSB acknowledgments must not disclose whether an address can receive mail.
+for (const format of ['json', 'form']) {
+  test(`GSB ${format}: same truthful acknowledgment for new, confirmed, opted-out and blocklisted addresses`, async (t) => {
+    const originalFetch = globalThis.fetch;
+    t.after(() => { globalThis.fetch = originalFetch; });
+    let expected;
+    for (const state of ['new', 'confirmed', 'unsubscribed', 'blocklisted']) {
+      let calls;
+      if (state === 'new') calls = recordFetch(t);
+      else calls = listmonkMock({ lookup: [{ id: 77,
+        status: state === 'blocklisted' ? 'blocklisted' : 'enabled',
+        lists: state === 'blocklisted' ? [] : [{ id: 14, subscription_status: state }],
+      }] });
+      const response = await worker.fetch(post({
+        Origin: 'https://greatsouthernbrood.com',
+        'Content-Type': format === 'json' ? 'application/json' : 'application/x-www-form-urlencoded',
+      }, format === 'json' ? { email: 'jordan@example.com', list: 'great-southern-brood' }
+        : 'email=jordan%40example.com&list=great-southern-brood'), allEnv);
+      assert.equal(response.status, 200);
+      const result = format === 'json' ? await response.json() : await response.text();
+      const text = format === 'json' ? result.message : result;
+      assert.match(text, /If this address is subscribed/);
+      assert.doesNotMatch(text, /(?:on the list|already subscribed)/i);
+      if (expected === undefined) expected = result;
+      else assert.deepEqual(result, expected, `response must not reveal ${state} status`);
+      assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
+    }
+  });
+}

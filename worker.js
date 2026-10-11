@@ -95,9 +95,15 @@ export default {
     // Native (no-JavaScript) form posts get an HTML page back; JSON callers keep JSON.
     const contentType = request.headers.get('Content-Type') || '';
     const isForm = /^(application\/x-www-form-urlencoded|multipart\/form-data)/i.test(contentType);
-    const reply = (data, status) => isForm
-      ? htmlResponse(data, status, allowedOrigin)
-      : jsonResponse(data, status, allowedOrigin);
+    const reply = (data, status, listKey) => {
+      // Opt-outs and blocklists stay protected without revealing membership to the caller.
+      const acknowledgment = listKey === 'great-southern-brood' && data.success
+        ? 'Thanks. If this address is subscribed, we’ll email you when it’s out.'
+        : undefined;
+      return isForm
+        ? htmlResponse(data, status, allowedOrigin, acknowledgment)
+        : jsonResponse(acknowledgment ? { ...data, message: acknowledgment } : data, status, allowedOrigin);
+    };
 
     try {
       const data = isForm ? Object.fromEntries(await request.formData()) : await request.json();
@@ -161,7 +167,7 @@ export default {
           if (!added) {
             return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
           }
-          return reply({ success: true, message: 'You\'re already subscribed.' }, 200);
+          return reply({ success: true, message: 'You\'re already subscribed.' }, 200, listKey);
         }
         console.error('ListMonk API error:', listmonkResponse.status, errorData);
         return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
@@ -195,7 +201,7 @@ export default {
         }
       }
 
-      return reply({ success: true, message: 'Successfully subscribed!' }, 200);
+      return reply({ success: true, message: 'Successfully subscribed!' }, 200, listKey);
 
     } catch (error) {
       console.error('Worker error:', error);
@@ -301,8 +307,8 @@ function jsonResponse(data, status, allowedOrigin) {
 
 // Minimal page for native form posts. Echoes nothing from the request: the message is one of
 // our own fixed strings and the link goes to an origin already matched against the allowlist.
-function htmlResponse(data, status, allowedOrigin) {
-  const message = data.success ? "You're on the list." : data.error;
+function htmlResponse(data, status, allowedOrigin, acknowledgment = "You're on the list.") {
+  const message = data.success ? acknowledgment : data.error;
   return new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${message}</title></head><body style="font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem"><p>${message}</p><p><a href="${allowedOrigin}">Back to the site</a></p></body></html>`,
     { status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Access-Control-Allow-Origin': allowedOrigin } },
