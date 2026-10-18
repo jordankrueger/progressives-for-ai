@@ -28,6 +28,9 @@ const LIST_IDS = {
 const MC_UNSUB_CAMPAIGN_UUID = '5ab4ac56-2b70-4924-b747-16c487b284af';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const SUBSCRIBED_NOTE_TEXT = /\n\nYou're now subscribed to Mission Control[^\n]*/;
+const SUBSCRIBED_NOTE_HTML = /<p>You're now subscribed to Mission Control.*?<\/p>\n?/;
+
 const BONUS_EMAILS = {
   'ak-template': {
     from: 'Jordan Krueger <jordan@jordankrueger.com>',
@@ -175,11 +178,12 @@ export default {
           if (!existing) {
             return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
           }
-          // Returning subscribers still get what they asked for, unless they opted out.
+          // Returning subscribers still get what they asked for, unless blocklisted. Anyone
+          // who unsubscribed from the list gets it without the "you're now subscribed" note.
           // ponytail: no per-address cooldown, so each Turnstile pass can resend to a known
-          // address; one unsubscribe click stops it. Add a KV cooldown if it's ever abused.
-          if (wantsBonus && existing.mayEmail) {
-            await sendBonus(env, BONUS_EMAILS[bonus], email, listmonkUrl, existing.uuid);
+          // address; blocklisting stops it. Add a KV cooldown if it's ever abused.
+          if (wantsBonus && !existing.blocklisted) {
+            await sendBonus(env, BONUS_EMAILS[bonus], email, listmonkUrl, existing.uuid, existing.unsubscribed);
           }
           return reply({ success: true, message: 'You\'re already subscribed.' }, 200, listKey);
         }
@@ -203,12 +207,15 @@ export default {
 
 // Sends a bonus email via Resend with a self-serve unsubscribe link. Without a valid
 // subscriber UUID there is no link, so nothing is sent. Never throws: the signup already succeeded.
-async function sendBonus(env, bonusEmail, email, listmonkUrl, subUuid) {
+async function sendBonus(env, bonusEmail, email, listmonkUrl, subUuid, notSubscribed = false) {
   if (!UUID_RE.test(subUuid || '')) {
     console.error('Bonus email skipped: no subscriber UUID for the unsubscribe link');
     return;
   }
   const unsubUrl = `${listmonkUrl}/subscription/${MC_UNSUB_CAMPAIGN_UUID}/${subUuid}`;
+  // People who unsubscribed stay off the list, so drop the paragraph saying they're on it.
+  const text = notSubscribed ? bonusEmail.text.replace(SUBSCRIBED_NOTE_TEXT, '') : bonusEmail.text;
+  const html = notSubscribed ? bonusEmail.html.replace(SUBSCRIBED_NOTE_HTML, '') : bonusEmail.html;
   try {
     const resendResp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -220,8 +227,8 @@ async function sendBonus(env, bonusEmail, email, listmonkUrl, subUuid) {
         from: bonusEmail.from,
         to: [email],
         subject: bonusEmail.subject,
-        text: `${bonusEmail.text}\n\nUnsubscribe: ${unsubUrl}`,
-        html: `${bonusEmail.html}\n<p style="font-size:12px;color:#666;"><a href="${unsubUrl}">Unsubscribe</a></p>`,
+        text: `${text}\n\nUnsubscribe: ${unsubUrl}`,
+        html: `${html}\n<p style="font-size:12px;color:#666;"><a href="${unsubUrl}">Unsubscribe</a></p>`,
         headers: {
           'List-Unsubscribe': `<${unsubUrl}>`,
           'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
@@ -243,14 +250,14 @@ async function sendBonus(env, bonusEmail, email, listmonkUrl, subUuid) {
 // default) nothing else can end the literal.
 const LOOKUP_SAFE_EMAIL = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9-]+$/;
 
-// Returns { uuid, mayEmail } when the subscriber is on the list afterwards (or is blocklisted
-// and must be left alone, or the email can't be looked up); null on any failure. mayEmail is
-// false for anyone blocklisted or unsubscribed from the list. Never logs the email.
+// Returns { uuid, blocklisted, unsubscribed } when the subscriber is on the list afterwards
+// (or is blocklisted and must be left alone, or the email can't be looked up); null on any
+// failure. unsubscribed = they opted out of this list and stay out. Never logs the email.
 async function addExistingToList(listmonkUrl, authHeader, email, listId) {
   if (!LOOKUP_SAFE_EMAIL.test(email)) {
     // Can't be put in the lookup safely: fall back to the old behavior (generic success).
     console.error('Existing subscriber lookup skipped: email failed strict check');
-    return { uuid: null, mayEmail: false };
+    return { uuid: null, blocklisted: false, unsubscribed: false };
   }
   const headers = { 'Content-Type': 'application/json', 'Authorization': authHeader };
   const query = `LOWER(subscribers.email) = '${email.toLowerCase().replace(/'/g, "''")}'`;
@@ -266,10 +273,12 @@ async function addExistingToList(listmonkUrl, authHeader, email, listId) {
       return null;
     }
     // Never re-add someone who was blocklisted; answer as if it worked.
-    if (subscriber.status === 'blocklisted') return { uuid: subscriber.uuid, mayEmail: false };
+    if (subscriber.status === 'blocklisted') return { uuid: subscriber.uuid, blocklisted: true, unsubscribed: false };
     // Already on the list in any state (including unsubscribed): leave it alone.
     const membership = (subscriber.lists || []).find(l => l.id === listId);
-    if (membership) return { uuid: subscriber.uuid, mayEmail: membership.subscription_status !== 'unsubscribed' };
+    if (membership) {
+      return { uuid: subscriber.uuid, blocklisted: false, unsubscribed: membership.subscription_status === 'unsubscribed' };
+    }
 
     const add = await fetch(`${listmonkUrl}/api/subscribers/lists`, {
       method: 'PUT',
@@ -280,7 +289,7 @@ async function addExistingToList(listmonkUrl, authHeader, email, listId) {
       console.error('ListMonk add-to-list failed:', add.status);
       return null;
     }
-    return { uuid: subscriber.uuid, mayEmail: true };
+    return { uuid: subscriber.uuid, blocklisted: false, unsubscribed: false };
   } catch (error) {
     console.error('ListMonk add-to-list error:', error.name);
     return null;
