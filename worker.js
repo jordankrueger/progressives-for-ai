@@ -176,6 +176,8 @@ export default {
             return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
           }
           // Returning subscribers still get what they asked for, unless they opted out.
+          // ponytail: no per-address cooldown, so each Turnstile pass can resend to a known
+          // address; one unsubscribe click stops it. Add a KV cooldown if it's ever abused.
           if (wantsBonus && existing.mayEmail) {
             await sendBonus(env, BONUS_EMAILS[bonus], email, listmonkUrl, existing.uuid);
           }

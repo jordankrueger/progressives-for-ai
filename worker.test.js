@@ -556,9 +556,9 @@ function existingMock(t, lookup) {
 const existingUuid = '99999999-8888-7777-6666-555555555555';
 const resendCalls = (calls) => calls.filter(c => c.url === 'https://api.resend.com/emails');
 
-for (const [label, lists] of [
-  ['on other lists only (gets added to Mission Control)', [{ id: 3, subscription_status: 'confirmed' }]],
-  ['already on Mission Control', [{ id: 4, subscription_status: 'confirmed' }]],
+for (const [label, lists, puts] of [
+  ['on other lists only (gets added to Mission Control)', [{ id: 3, subscription_status: 'confirmed' }], 1],
+  ['already on Mission Control', [{ id: 4, subscription_status: 'confirmed' }], 0],
 ]) {
   test(`existing subscriber ${label}: bonus email is sent with their unsubscribe link`, async (t) => {
     const calls = existingMock(t, { id: 77, uuid: existingUuid, status: 'enabled', lists });
@@ -566,6 +566,12 @@ for (const [label, lists] of [
     const response = await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
 
     assert.equal(response.status, 200);
+    const put = calls.filter(c => c.method === 'PUT');
+    assert.equal(put.length, puts);
+    if (puts) {
+      assert.deepEqual(JSON.parse(put[0].body),
+        { ids: [77], action: 'add', target_list_ids: [4], status: 'confirmed' });
+    }
     const sent = resendCalls(calls);
     assert.equal(sent.length, 1);
     assert.ok(JSON.parse(sent[0].body).text.endsWith(
@@ -584,6 +590,7 @@ for (const [label, lookup] of [
 
     assert.equal(response.status, 200);
     assert.equal((await response.json()).success, true);
+    assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
     assert.equal(resendCalls(calls).length, 0);
   });
 }
