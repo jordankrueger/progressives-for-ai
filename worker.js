@@ -28,8 +28,8 @@ const LIST_IDS = {
 const MC_UNSUB_CAMPAIGN_UUID = '5ab4ac56-2b70-4924-b747-16c487b284af';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const SUBSCRIBED_NOTE_TEXT = /\n\nYou're now subscribed to Mission Control[^\n]*/;
-const SUBSCRIBED_NOTE_HTML = /<p>You're now subscribed to Mission Control.*?<\/p>\n?/;
+// Bodies hold {{SUBSCRIBED_NOTE}}; sendBonus fills it with subscribedNote, or with nothing
+// for people who unsubscribed and stay off the list.
 
 const BONUS_EMAILS = {
   'ak-template': {
@@ -51,9 +51,7 @@ The two things that pay the bills:
 - CampaignHelp (campaign.help) -- My consulting practice. I help progressive nonprofits with ActionKit, tool migrations, workflow automation, and digital security. If you're stuck on something AK-related and want a person to look at it, this is the door.
 - AK Help (akhelp.campaign.help) -- An AI assistant trained on the ActionKit docs that answers questions instantly, instead of making you wait on a support ticket. Built for AK admins like you.
 
-You're now subscribed to Mission Control, my newsletter. I send it when I have something genuinely useful to share, not on a schedule. You can unsubscribe using the link at the bottom of any newsletter you receive, of course!
-
-Thanks for being here,
+{{SUBSCRIBED_NOTE}}Thanks for being here,
 Jordan`,
     html: `<p>Hi,</p>
 <p>Thanks for grabbing my ActionKit Production Template. Here's the link to make a copy in Google Docs:</p>
@@ -68,8 +66,8 @@ Jordan`,
   <li><strong><a href="https://campaign.help">CampaignHelp</a></strong> &mdash; My consulting practice. I help progressive nonprofits with ActionKit, tool migrations, workflow automation, and digital security. If you're stuck on something AK-related and want a person to look at it, this is the door.</li>
   <li><strong><a href="https://akhelp.campaign.help">AK Help</a></strong> &mdash; An AI assistant trained on the ActionKit docs that answers questions instantly, instead of making you wait on a support ticket. Built for AK admins like you.</li>
 </ul>
-<p>You're now subscribed to Mission Control, my newsletter. I send it when I have something genuinely useful to share, not on a schedule. You can unsubscribe using the link at the bottom of any newsletter you receive, of course!</p>
-<p>Thanks for being here,<br>Jordan</p>`,
+{{SUBSCRIBED_NOTE}}<p>Thanks for being here,<br>Jordan</p>`,
+    subscribedNote: `You're now subscribed to Mission Control, my newsletter. I send it when I have something genuinely useful to share, not on a schedule. You can unsubscribe using the link at the bottom of any newsletter you receive, of course!`,
   },
 };
 
@@ -178,11 +176,12 @@ export default {
           if (!existing) {
             return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
           }
-          // Returning subscribers still get what they asked for, unless blocklisted. Anyone
-          // who unsubscribed from the list gets it without the "you're now subscribed" note.
+          // Returning subscribers still get what they asked for (blocklisted ones come back
+          // with no uuid, so sendBonus skips them). Anyone who unsubscribed from the list gets
+          // it without the "you're now subscribed" note.
           // ponytail: no per-address cooldown, so each Turnstile pass can resend to a known
           // address; blocklisting stops it. Add a KV cooldown if it's ever abused.
-          if (wantsBonus && !existing.blocklisted) {
+          if (wantsBonus) {
             await sendBonus(env, BONUS_EMAILS[bonus], email, listmonkUrl, existing.uuid, existing.unsubscribed);
           }
           return reply({ success: true, message: 'You\'re already subscribed.' }, 200, listKey);
@@ -213,9 +212,9 @@ async function sendBonus(env, bonusEmail, email, listmonkUrl, subUuid, notSubscr
     return;
   }
   const unsubUrl = `${listmonkUrl}/subscription/${MC_UNSUB_CAMPAIGN_UUID}/${subUuid}`;
-  // People who unsubscribed stay off the list, so drop the paragraph saying they're on it.
-  const text = notSubscribed ? bonusEmail.text.replace(SUBSCRIBED_NOTE_TEXT, '') : bonusEmail.text;
-  const html = notSubscribed ? bonusEmail.html.replace(SUBSCRIBED_NOTE_HTML, '') : bonusEmail.html;
+  const note = notSubscribed ? '' : bonusEmail.subscribedNote;
+  const text = bonusEmail.text.replace('{{SUBSCRIBED_NOTE}}', note && `${note}\n\n`);
+  const html = bonusEmail.html.replace('{{SUBSCRIBED_NOTE}}', note && `<p>${note}</p>\n`);
   try {
     const resendResp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -250,14 +249,14 @@ async function sendBonus(env, bonusEmail, email, listmonkUrl, subUuid, notSubscr
 // default) nothing else can end the literal.
 const LOOKUP_SAFE_EMAIL = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9-]+$/;
 
-// Returns { uuid, blocklisted, unsubscribed } when the subscriber is on the list afterwards
-// (or is blocklisted and must be left alone, or the email can't be looked up); null on any
+// Returns { uuid, unsubscribed } when the subscriber is on the list afterwards; {} when they
+// are blocklisted and must be left alone, or the email can't be looked up; null on any
 // failure. unsubscribed = they opted out of this list and stay out. Never logs the email.
 async function addExistingToList(listmonkUrl, authHeader, email, listId) {
   if (!LOOKUP_SAFE_EMAIL.test(email)) {
     // Can't be put in the lookup safely: fall back to the old behavior (generic success).
     console.error('Existing subscriber lookup skipped: email failed strict check');
-    return { uuid: null, blocklisted: false, unsubscribed: false };
+    return {};
   }
   const headers = { 'Content-Type': 'application/json', 'Authorization': authHeader };
   const query = `LOWER(subscribers.email) = '${email.toLowerCase().replace(/'/g, "''")}'`;
@@ -273,12 +272,10 @@ async function addExistingToList(listmonkUrl, authHeader, email, listId) {
       return null;
     }
     // Never re-add someone who was blocklisted; answer as if it worked.
-    if (subscriber.status === 'blocklisted') return { uuid: subscriber.uuid, blocklisted: true, unsubscribed: false };
+    if (subscriber.status === 'blocklisted') return {};
     // Already on the list in any state (including unsubscribed): leave it alone.
     const membership = (subscriber.lists || []).find(l => l.id === listId);
-    if (membership) {
-      return { uuid: subscriber.uuid, blocklisted: false, unsubscribed: membership.subscription_status === 'unsubscribed' };
-    }
+    if (membership) return { uuid: subscriber.uuid, unsubscribed: membership.subscription_status === 'unsubscribed' };
 
     const add = await fetch(`${listmonkUrl}/api/subscribers/lists`, {
       method: 'PUT',
@@ -289,7 +286,7 @@ async function addExistingToList(listmonkUrl, authHeader, email, listId) {
       console.error('ListMonk add-to-list failed:', add.status);
       return null;
     }
-    return { uuid: subscriber.uuid, blocklisted: false, unsubscribed: false };
+    return { uuid: subscriber.uuid, unsubscribed: false };
   } catch (error) {
     console.error('ListMonk add-to-list error:', error.name);
     return null;
