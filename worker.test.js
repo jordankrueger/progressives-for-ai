@@ -355,7 +355,7 @@ test('bonus field on hsr-tv: subscribes, no Resend call', async (t) => {
 test('bonus field on mission-control with a valid Turnstile token: Resend call is made', async (t) => {
   const calls = recordFetch(t, (url) => url.includes('/siteverify')
     ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
-    : Response.json({ data: { id: 1 } }));
+    : Response.json({ data: { id: 1, uuid: '11111111-2222-3333-4444-555555555555' } }));
   const response = await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
   assert.equal(response.status, 200);
   assert.deepEqual(calls.map(c => c.url), [
@@ -532,15 +532,65 @@ test('bonus email links to the Mission Control unsubscribe page for the new subs
   assert.equal(sent.headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click');
 });
 
-test('bonus email without a valid subscriber UUID sends no unsubscribe link', async (t) => {
+test('bonus email without a valid subscriber UUID is not sent (it could not carry an unsubscribe link)', async (t) => {
   const calls = recordFetch(t, (url) => url.includes('/siteverify')
     ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
     : Response.json({ data: { id: 1, uuid: '"><script>' } }));
 
-  await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
+  const response = await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
 
-  const sent = JSON.parse(calls.find(c => c.url === 'https://api.resend.com/emails').body);
-  assert.ok(!sent.text.includes('Unsubscribe:'));
-  assert.ok(!sent.html.includes('<script>'));
-  assert.equal(sent.headers, undefined);
+  assert.equal(response.status, 200);
+  assert.equal(calls.filter(c => c.url === 'https://api.resend.com/emails').length, 0);
 });
+
+// --- returning subscribers who ask for the AK Template still get it ---
+
+function existingMock(t, lookup) {
+  return recordFetch(t, (url) => {
+    if (url.includes('/siteverify')) return Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' });
+    if (url === 'https://newsletter.example.com/api/subscribers') return Response.json({ message: 'E-mail already exists.' }, { status: 409 });
+    if (url.startsWith('https://newsletter.example.com/api/subscribers?')) return Response.json({ data: { results: [lookup] } });
+    return Response.json({ data: true });
+  });
+}
+const existingUuid = '99999999-8888-7777-6666-555555555555';
+const resendCalls = (calls) => calls.filter(c => c.url === 'https://api.resend.com/emails');
+
+for (const [label, lists, puts] of [
+  ['on other lists only (gets added to Mission Control)', [{ id: 3, subscription_status: 'confirmed' }], 1],
+  ['already on Mission Control', [{ id: 4, subscription_status: 'confirmed' }], 0],
+]) {
+  test(`existing subscriber ${label}: bonus email is sent with their unsubscribe link`, async (t) => {
+    const calls = existingMock(t, { id: 77, uuid: existingUuid, status: 'enabled', lists });
+
+    const response = await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
+
+    assert.equal(response.status, 200);
+    const put = calls.filter(c => c.method === 'PUT');
+    assert.equal(put.length, puts);
+    if (puts) {
+      assert.deepEqual(JSON.parse(put[0].body),
+        { ids: [77], action: 'add', target_list_ids: [4], status: 'confirmed' });
+    }
+    const sent = resendCalls(calls);
+    assert.equal(sent.length, 1);
+    assert.ok(JSON.parse(sent[0].body).text.endsWith(
+      `Unsubscribe: https://newsletter.example.com/subscription/5ab4ac56-2b70-4924-b747-16c487b284af/${existingUuid}`));
+  });
+}
+
+for (const [label, lookup] of [
+  ['blocklisted', { id: 77, uuid: existingUuid, status: 'blocklisted', lists: [] }],
+  ['unsubscribed from Mission Control', { id: 77, uuid: existingUuid, status: 'enabled', lists: [{ id: 4, subscription_status: 'unsubscribed' }] }],
+]) {
+  test(`existing subscriber ${label}: no bonus email, same generic success`, async (t) => {
+    const calls = existingMock(t, lookup);
+
+    const response = await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
+
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).success, true);
+    assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
+    assert.equal(resendCalls(calls).length, 0);
+  });
+}
