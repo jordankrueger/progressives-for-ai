@@ -512,3 +512,35 @@ for (const format of ['json', 'form']) {
     }
   });
 }
+
+// --- AK Template bonus email carries a self-serve unsubscribe link ---
+
+test('bonus email links to the Mission Control unsubscribe page for the new subscriber', async (t) => {
+  const uuid = '11111111-2222-3333-4444-555555555555';
+  const calls = recordFetch(t, (url) => url.includes('/siteverify')
+    ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
+    : Response.json({ data: { id: 1, uuid } }));
+
+  const response = await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
+
+  assert.equal(response.status, 200);
+  const sent = JSON.parse(calls.find(c => c.url === 'https://api.resend.com/emails').body);
+  const link = `https://newsletter.example.com/subscription/5ab4ac56-2b70-4924-b747-16c487b284af/${uuid}`;
+  assert.ok(sent.text.endsWith(`Unsubscribe: ${link}`));
+  assert.ok(sent.html.includes(`<a href="${link}">Unsubscribe</a>`));
+  assert.equal(sent.headers['List-Unsubscribe'], `<${link}>`);
+  assert.equal(sent.headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click');
+});
+
+test('bonus email without a valid subscriber UUID sends no unsubscribe link', async (t) => {
+  const calls = recordFetch(t, (url) => url.includes('/siteverify')
+    ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
+    : Response.json({ data: { id: 1, uuid: '"><script>' } }));
+
+  await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
+
+  const sent = JSON.parse(calls.find(c => c.url === 'https://api.resend.com/emails').body);
+  assert.ok(!sent.text.includes('Unsubscribe:'));
+  assert.ok(!sent.html.includes('<script>'));
+  assert.equal(sent.headers, undefined);
+});

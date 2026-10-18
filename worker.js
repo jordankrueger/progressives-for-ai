@@ -23,6 +23,11 @@ const LIST_IDS = {
   'great-southern-brood': 14,
 };
 
+// Draft campaign on list 4 that is never sent. Its UUID lets the bonus email carry
+// Listmonk's own unsubscribe link, which unsubscribes from that campaign's lists.
+const MC_UNSUB_CAMPAIGN_UUID = '5ab4ac56-2b70-4924-b747-16c487b284af';
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const BONUS_EMAILS = {
   'ak-template': {
     from: 'Jordan Krueger <jordan@jordankrueger.com>',
@@ -177,6 +182,10 @@ export default {
       // Only the Turnstile-gated list may trigger a bonus email.
       if (listKey === 'mission-control' && bonus && Object.hasOwn(BONUS_EMAILS, bonus) && env.RESEND_API_KEY) {
         const bonusEmail = BONUS_EMAILS[bonus];
+        const subUuid = (await listmonkResponse.json().catch(() => ({})))?.data?.uuid;
+        const unsubUrl = UUID_RE.test(subUuid || '')
+          ? `${listmonkUrl}/subscription/${MC_UNSUB_CAMPAIGN_UUID}/${subUuid}`
+          : '';
         try {
           const resendResp = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -188,8 +197,14 @@ export default {
               from: bonusEmail.from,
               to: [email],
               subject: bonusEmail.subject,
-              text: bonusEmail.text,
-              html: bonusEmail.html,
+              text: unsubUrl ? `${bonusEmail.text}\n\nUnsubscribe: ${unsubUrl}` : bonusEmail.text,
+              html: unsubUrl ? `${bonusEmail.html}\n<p style="font-size:12px;color:#666;"><a href="${unsubUrl}">Unsubscribe</a></p>` : bonusEmail.html,
+              ...(unsubUrl && {
+                headers: {
+                  'List-Unsubscribe': `<${unsubUrl}>`,
+                  'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                },
+              }),
             }),
           });
           if (!resendResp.ok) {
