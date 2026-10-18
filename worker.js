@@ -147,6 +147,9 @@ export default {
       }
       const authHeader = 'Basic ' + btoa(`${apiUser}:${apiPassword}`);
 
+      // Only the Turnstile-gated list may trigger a bonus email.
+      const wantsBonus = listKey === 'mission-control' && bonus && Object.hasOwn(BONUS_EMAILS, bonus) && env.RESEND_API_KEY;
+
       const listmonkResponse = await fetch(`${listmonkUrl}/api/subscribers`, {
         method: 'POST',
         headers: {
@@ -168,9 +171,13 @@ export default {
         // Already-subscribed is success from the user's perspective.
         if (listmonkResponse.status === 409 || /already exists|duplicate/i.test(errMsg)) {
           // Exists on some list already: add the requested list, leave their other lists alone.
-          const added = await addExistingToList(listmonkUrl, authHeader, email, listId);
-          if (!added) {
+          const existing = await addExistingToList(listmonkUrl, authHeader, email, listId);
+          if (!existing) {
             return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
+          }
+          // Returning subscribers still get what they asked for, unless they opted out.
+          if (wantsBonus && existing.mayEmail) {
+            await sendBonus(env, BONUS_EMAILS[bonus], email, listmonkUrl, existing.uuid);
           }
           return reply({ success: true, message: 'You\'re already subscribed.' }, 200, listKey);
         }
@@ -178,42 +185,9 @@ export default {
         return reply({ error: 'Unable to subscribe. Please try again.' }, 500);
       }
 
-      // Optional: fire bonus welcome email via Resend
-      // Only the Turnstile-gated list may trigger a bonus email.
-      if (listKey === 'mission-control' && bonus && Object.hasOwn(BONUS_EMAILS, bonus) && env.RESEND_API_KEY) {
-        const bonusEmail = BONUS_EMAILS[bonus];
-        const subUuid = (await listmonkResponse.json().catch(() => ({})))?.data?.uuid;
-        const unsubUrl = UUID_RE.test(subUuid || '')
-          ? `${listmonkUrl}/subscription/${MC_UNSUB_CAMPAIGN_UUID}/${subUuid}`
-          : '';
-        try {
-          const resendResp = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              from: bonusEmail.from,
-              to: [email],
-              subject: bonusEmail.subject,
-              text: unsubUrl ? `${bonusEmail.text}\n\nUnsubscribe: ${unsubUrl}` : bonusEmail.text,
-              html: unsubUrl ? `${bonusEmail.html}\n<p style="font-size:12px;color:#666;"><a href="${unsubUrl}">Unsubscribe</a></p>` : bonusEmail.html,
-              ...(unsubUrl && {
-                headers: {
-                  'List-Unsubscribe': `<${unsubUrl}>`,
-                  'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-                },
-              }),
-            }),
-          });
-          if (!resendResp.ok) {
-            console.error('Resend bonus email failed:', await resendResp.text());
-          }
-        } catch (err) {
-          console.error('Resend bonus email error:', err);
-          // Don't fail the whole request — subscription succeeded
-        }
+      if (wantsBonus) {
+        const created = await listmonkResponse.json().catch(() => ({}));
+        await sendBonus(env, BONUS_EMAILS[bonus], email, listmonkUrl, created?.data?.uuid);
       }
 
       return reply({ success: true, message: 'Successfully subscribed!' }, 200, listKey);
@@ -225,6 +199,41 @@ export default {
   },
 };
 
+// Sends a bonus email via Resend with a self-serve unsubscribe link. Without a valid
+// subscriber UUID there is no link, so nothing is sent. Never throws: the signup already succeeded.
+async function sendBonus(env, bonusEmail, email, listmonkUrl, subUuid) {
+  if (!UUID_RE.test(subUuid || '')) {
+    console.error('Bonus email skipped: no subscriber UUID for the unsubscribe link');
+    return;
+  }
+  const unsubUrl = `${listmonkUrl}/subscription/${MC_UNSUB_CAMPAIGN_UUID}/${subUuid}`;
+  try {
+    const resendResp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: bonusEmail.from,
+        to: [email],
+        subject: bonusEmail.subject,
+        text: `${bonusEmail.text}\n\nUnsubscribe: ${unsubUrl}`,
+        html: `${bonusEmail.html}\n<p style="font-size:12px;color:#666;"><a href="${unsubUrl}">Unsubscribe</a></p>`,
+        headers: {
+          'List-Unsubscribe': `<${unsubUrl}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
+      }),
+    });
+    if (!resendResp.ok) {
+      console.error('Resend bonus email failed:', await resendResp.text());
+    }
+  } catch (err) {
+    console.error('Resend bonus email error:', err);
+  }
+}
+
 // Listmonk v6 has no email lookup parameter on GET /api/subscribers, only a raw SQL
 // `query`. The email is interpolated into a single-quoted Postgres string, so it must
 // match this allowlist (no backslash, double quote, semicolon, whitespace or parens)
@@ -232,13 +241,14 @@ export default {
 // default) nothing else can end the literal.
 const LOOKUP_SAFE_EMAIL = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9-]+$/;
 
-// Returns true when the subscriber is on the list afterwards (or is blocklisted and
-// must be left alone, or the email can't be looked up); false on any failure. Never logs the email.
+// Returns { uuid, mayEmail } when the subscriber is on the list afterwards (or is blocklisted
+// and must be left alone, or the email can't be looked up); null on any failure. mayEmail is
+// false for anyone blocklisted or unsubscribed from the list. Never logs the email.
 async function addExistingToList(listmonkUrl, authHeader, email, listId) {
   if (!LOOKUP_SAFE_EMAIL.test(email)) {
     // Can't be put in the lookup safely: fall back to the old behavior (generic success).
     console.error('Existing subscriber lookup skipped: email failed strict check');
-    return true;
+    return { uuid: null, mayEmail: false };
   }
   const headers = { 'Content-Type': 'application/json', 'Authorization': authHeader };
   const query = `LOWER(subscribers.email) = '${email.toLowerCase().replace(/'/g, "''")}'`;
@@ -246,17 +256,18 @@ async function addExistingToList(listmonkUrl, authHeader, email, listId) {
     const lookup = await fetch(`${listmonkUrl}/api/subscribers?${new URLSearchParams({ query, per_page: '1' })}`, { headers });
     if (!lookup.ok) {
       console.error('ListMonk subscriber lookup failed:', lookup.status);
-      return false;
+      return null;
     }
     const subscriber = ((await lookup.json()).data?.results || [])[0];
     if (!subscriber) {
       console.error('ListMonk subscriber lookup found no match after 409');
-      return false;
+      return null;
     }
     // Never re-add someone who was blocklisted; answer as if it worked.
-    if (subscriber.status === 'blocklisted') return true;
+    if (subscriber.status === 'blocklisted') return { uuid: subscriber.uuid, mayEmail: false };
     // Already on the list in any state (including unsubscribed): leave it alone.
-    if ((subscriber.lists || []).some(l => l.id === listId)) return true;
+    const membership = (subscriber.lists || []).find(l => l.id === listId);
+    if (membership) return { uuid: subscriber.uuid, mayEmail: membership.subscription_status !== 'unsubscribed' };
 
     const add = await fetch(`${listmonkUrl}/api/subscribers/lists`, {
       method: 'PUT',
@@ -265,12 +276,12 @@ async function addExistingToList(listmonkUrl, authHeader, email, listId) {
     });
     if (!add.ok) {
       console.error('ListMonk add-to-list failed:', add.status);
-      return false;
+      return null;
     }
-    return true;
+    return { uuid: subscriber.uuid, mayEmail: true };
   } catch (error) {
     console.error('ListMonk add-to-list error:', error.name);
-    return false;
+    return null;
   }
 }
 
