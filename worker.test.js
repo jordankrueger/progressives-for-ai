@@ -574,14 +574,32 @@ for (const [label, lists, puts] of [
     }
     const sent = resendCalls(calls);
     assert.equal(sent.length, 1);
+    assert.ok(JSON.parse(sent[0].body).text.includes("You're now subscribed to Mission Control"));
     assert.ok(JSON.parse(sent[0].body).text.endsWith(
       `Unsubscribe: https://newsletter.example.com/subscription/5ab4ac56-2b70-4924-b747-16c487b284af/${existingUuid}`));
   });
 }
 
+test('existing subscriber unsubscribed from Mission Control: gets the template, without the subscribed note, stays off the list', async (t) => {
+  const calls = existingMock(t, { id: 77, uuid: existingUuid, status: 'enabled', lists: [{ id: 4, subscription_status: 'unsubscribed' }] });
+
+  const response = await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
+
+  assert.equal(response.status, 200);
+  assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
+  const sent = resendCalls(calls);
+  assert.equal(sent.length, 1);
+  const { text, html } = JSON.parse(sent[0].body);
+  assert.ok(!text.includes('subscribed to Mission Control'));
+  assert.ok(!html.includes('subscribed to Mission Control'));
+  assert.ok(text.includes('Open the AK Production Template') || text.includes('/copy'));
+  assert.ok(text.includes('Thanks for being here'));
+  assert.ok(html.includes('Thanks for being here'));
+  assert.ok(text.endsWith(`Unsubscribe: https://newsletter.example.com/subscription/5ab4ac56-2b70-4924-b747-16c487b284af/${existingUuid}`));
+});
+
 for (const [label, lookup] of [
   ['blocklisted', { id: 77, uuid: existingUuid, status: 'blocklisted', lists: [] }],
-  ['unsubscribed from Mission Control', { id: 77, uuid: existingUuid, status: 'enabled', lists: [{ id: 4, subscription_status: 'unsubscribed' }] }],
 ]) {
   test(`existing subscriber ${label}: no bonus email, same generic success`, async (t) => {
     const calls = existingMock(t, lookup);
