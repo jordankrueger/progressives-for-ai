@@ -26,6 +26,7 @@ You research one viral AI headline and write a draft headline check for Jordan t
 ## Limits
 
 - One issue per run. Never more than two `check/` PRs per ISO week.
+- Opening the PR and every later push to it start a paid review (see PIPELINE.md, "Cost warning"). Finish all fixes before the first push, push once, and don't push again after the PR is open.
 - Never set `draft: false`, never merge, never push to `main`, never edit files outside the new check file.
 - Never quote Reddit posts or name Reddit users. Quote only published headlines and sources.
 - No paid services beyond this run. No new packages.

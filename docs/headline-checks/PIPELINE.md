@@ -4,33 +4,41 @@ How a viral AI headline becomes a published check. Three scheduled Claude Code r
 (Anthropic cloud, on Jordan's Claude plan) do the finding and drafting against this repo.
 Nothing runs on the Mac Mini. Jordan publishes.
 
-## Cost warning: pull requests against main start two paid reviews
+## Cost warning: pull requests into main start paid reviews
 
-`.github/workflows/ai-code-review.yml` runs on **every pull request into `main`**, for the
-`opened`, `synchronize` (each new push to the PR branch) and `reopened` events. It has **no
-path filter and no draft filter**, so a draft PR that only adds one `.mdx` file still triggers it.
-Each trigger runs two paid jobs, billed to the API keys in the repo secrets:
+`.github/workflows/ai-code-review.yml` (as of PR #31) runs on **every pull request into
+`main`**, for the `opened`, `synchronize` (each new push to the PR branch) and `reopened`
+events. There is no draft filter: a draft PR triggers it too. It has two jobs, billed to the
+API keys in the repo secrets:
 
-1. **OpenAI Logic Review**: one Responses API call to `gpt-5.3-codex` with the PR diff plus the
-   full text of each changed file (capped at 350,000 characters, about 90K tokens). A one-file
-   check is about 7 to 15 KB of MDX (the sample is 6.9 KB), sent twice (full file and diff),
-   so roughly 4K to 8K input tokens plus the fixed review prompt.
-2. **Anthropic Security Review**: the `anthropics/claude-code-security-review` action, a Claude
-   Code session of up to 8 minutes using `ANTHROPIC_API_KEY`.
+1. **OpenAI Logic Review: always runs.** One Responses API call to `gpt-5.3-codex` with the PR
+   diff plus the full text of each changed file (capped at 350,000 characters, about 90K
+   tokens). `.md` and `.mdx` files are not skipped. A one-file check is about 7 to 15 KB of
+   MDX (the sample is 6.9 KB), sent twice (full file and diff), so roughly 4K to 8K input
+   tokens plus the fixed review prompt.
+2. **Anthropic Security Review (Sonnet 5.5): skipped when every changed file is
+   `.md/.mdx/.txt`, an image or a PDF.** It still runs (a Claude Code session of up to 8
+   minutes) if the PR touches anything else, such as `.ts`, `.astro`, `.mjs`, `.json` or a
+   workflow file.
 
-So one research PR costs **two paid reviews when opened, plus two more for every later push**
-to its branch. The `concurrency` setting cancels an in-progress run when a new push arrives,
-but a cancelled run may already have spent tokens. Per-run dollar cost is not knowable from the
-repo: read it from the OpenAI and Anthropic usage pages after the first research PR.
+So a research PR that adds only `src/content/reality-check/checks/<slug>.mdx` costs **one
+OpenAI review when opened, plus one more for every later push** to its branch. If the routine
+also edits code or JSON, each push costs both reviews. The `concurrency` setting cancels an
+in-progress run when a new push arrives, but a cancelled run may already have spent tokens.
+The per-run dollar amount is not knowable from the repo (the workflow notes Sonnet 5.5 at
+$2/$10 per million tokens; `gpt-5.3-codex` pricing is not recorded there): read both usage
+pages after the first research PR.
 
-What does not cost anything: pushes to `headline-data` or to `check/*` branches without a PR,
-the `headline-checks.yml` and `validate-data.yml` workflows (free on a public repo), and the
-Cloudflare Pages preview build that every branch push gets.
+The research routine is told to edit only the new `.mdx` file and to push once, so the
+expected cost is one OpenAI review per research PR, at most two research PRs a week.
 
-Ways to cut it, if wanted (not done; `ai-code-review.yml` is untouched): add
-`paths-ignore: ['src/content/reality-check/checks/**']` to its `pull_request` trigger, or skip
-draft PRs with `if: github.event.pull_request.draft == false` on both jobs, or have the research
-routine push the `check/` branch without opening a PR and link the preview URL in the issue.
+What costs nothing: pushes to `headline-data` or to `check/*` branches with no PR open, the
+`headline-checks.yml` and `validate-data.yml` workflows (free on a public repo), and the
+Cloudflare Pages preview build every branch push gets.
+
+To make content-only PRs free (not done; `ai-code-review.yml` is untouched): give the OpenAI
+job the same "docs/images only" skip step the security job has. Not `paths-ignore`: as the
+workflow notes, a required check that never starts blocks the merge.
 
 ## The three plug-in points
 
