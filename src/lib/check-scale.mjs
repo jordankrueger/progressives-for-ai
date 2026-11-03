@@ -81,7 +81,8 @@ export const sightingsFileSchema = z.array(sightingSchema);
 // or with SHOW_DRAFTS=1. A production build never includes them.
 export function draftsVisible({ dev = false, env = {} } = {}) {
   const branch = env.CF_PAGES_BRANCH;
-  return Boolean(dev || env.SHOW_DRAFTS === '1' || (branch && branch !== 'main'));
+  if (branch === 'main') return false; // the production build never shows drafts, whatever else is set
+  return Boolean(dev || env.SHOW_DRAFTS === '1' || branch);
 }
 
 // "4 checked: 1 holds up, 2 overblown, 1 doesn't hold up" (zero counts left out).

@@ -31,7 +31,7 @@ if (existsSync(CHECKS_DIR)) {
   for (const name of (await readdir(CHECKS_DIR)).filter((f) => f.endsWith('.mdx'))) {
     count++;
     const r = checkStructure(await readFile(join(CHECKS_DIR, name), 'utf8'));
-    errors.push(...r.errors.filter((e) => e.startsWith('frontmatter')).map((e) => `${CHECKS_DIR}/${name}: ${e}`));
+    errors.push(...r.errors.filter((e) => e.startsWith('frontmatter') || e.startsWith('no frontmatter')).map((e) => `${CHECKS_DIR}/${name}: ${e}`));
   }
 }
 

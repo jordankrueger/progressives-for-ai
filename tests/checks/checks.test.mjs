@@ -121,6 +121,7 @@ test('drafts show in dev, on preview branches and with SHOW_DRAFTS=1, never on m
   assert.equal(draftsVisible({ env: { CF_PAGES_BRANCH: 'headline-checks' } }), true);
   assert.equal(draftsVisible({ env: { SHOW_DRAFTS: '1' } }), true);
   assert.equal(draftsVisible({ env: { CF_PAGES_BRANCH: 'main' } }), false);
+  assert.equal(draftsVisible({ dev: true, env: { CF_PAGES_BRANCH: 'main', SHOW_DRAFTS: '1' } }), false);
   assert.equal(draftsVisible({ env: {} }), false);
 });
 
@@ -131,4 +132,19 @@ test('tally text', () => {
     tallyText(['overblown', 'holds-up', 'overblown', 'doesnt-hold-up', 'doesnt-hold-up']),
     "5 checked: 1 holds up, 2 overblown, 2 don't hold up",
   );
+});
+
+test('commented-out sections and empty talking points do not count', () => {
+  const commented = sample.replace(
+    '<h2><span class="num">04</span>What the headline gets right</h2>',
+    '{/* <h2><span class="num">04</span>What the headline gets right</h2> */}',
+  );
+  assert.ok(checkStructure(commented).errors.includes('missing section "What the headline gets right"'));
+  const empty = sample.replace(/<TalkingPoints[\s\S]*?\/>/, '<TalkingPoints points={[]} />');
+  assert.ok(checkStructure(empty).errors.includes('talking points are empty'));
+});
+
+test('broken frontmatter is reported as a frontmatter error', () => {
+  assert.ok(checkStructure('no frontmatter here').errors[0].startsWith('frontmatter:'));
+  assert.ok(checkStructure('---\ntitle: [unclosed\n---\nbody').errors[0].startsWith('frontmatter:'));
 });

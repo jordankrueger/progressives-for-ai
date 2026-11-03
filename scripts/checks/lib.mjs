@@ -12,6 +12,10 @@ export function parseMdx(text) {
   return { data: yaml.load(m[1]), body: m[2] };
 }
 
+// Body with MDX/HTML comments and code fences removed, so commented-out content doesn't count.
+export const renderedBody = (body) =>
+  body.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/```[\s\S]*?```/g, '');
+
 const zodErrors = (error) => error.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`);
 
 // Body section titles in order: <h2><span class="num">02</span>Title</h2> or "## Title".
@@ -51,9 +55,10 @@ export function checkStructure(text) {
   try {
     parsed = parseMdx(text);
   } catch (e) {
-    return { errors: [e.message], warnings };
+    return { errors: [`frontmatter: ${e.message.split('\n')[0]}`], warnings };
   }
-  const { data, body } = parsed;
+  const { data } = parsed;
+  const body = renderedBody(parsed.body);
   const fm = realityCheckSchema.safeParse(data);
   if (!fm.success) errors.push(...zodErrors(fm.error).map((e) => `frontmatter ${e}`));
   if (data?.category !== 'headline') errors.push('frontmatter category must be "headline"');
@@ -66,7 +71,9 @@ export function checkStructure(text) {
     else if (at < last) errors.push(`section "${required}" is out of order`);
     else last = at;
   }
-  if (!/<TalkingPoints\b/.test(body)) errors.push('missing talking points (<TalkingPoints>)');
+  const tp = body.match(/<TalkingPoints\b([\s\S]*?)\/>/)?.[1] ?? '';
+  if (!tp) errors.push('missing talking points (<TalkingPoints>)');
+  else if (!/text:\s*(['"])(?!\1)/.test(tp)) errors.push('talking points are empty');
   const sources = sourcesList(body);
   if (sources.length === 0) errors.push('missing sources (<Sources>)');
   else if (!sources.some((s) => s.original)) errors.push('no source is marked original: true');
