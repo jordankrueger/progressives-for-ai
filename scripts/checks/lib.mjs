@@ -36,16 +36,8 @@ export function statCards(body) {
   }));
 }
 
-export function sourcesList(body) {
-  const block = body.match(/<Sources\b([\s\S]*?)\/>\s*$/m)?.[1] ?? body.match(/<Sources\b([\s\S]*)/)?.[1] ?? '';
-  return [...block.matchAll(/\{([^{}]*)\}/g)]
-    .map((m) => ({
-      url: m[1].match(/url:\s*['"]([^'"]+)['"]/)?.[1],
-      title: m[1].match(/title:\s*(['"])([\s\S]*?)\1\s*,/)?.[2] ?? '',
-      original: /original:\s*true/.test(m[1]),
-    }))
-    .filter((s) => s.url);
-}
+// Inline citation numbers used in the body: <sup><a href="#source-3">3</a></sup> -> [3].
+export const citedNumbers = (body) => [...body.matchAll(/href="#source-(\d+)"/g)].map((m) => Number(m[1]));
 
 // Structural checks that need no network. Returns { errors, warnings }.
 export function checkStructure(text) {
@@ -74,9 +66,24 @@ export function checkStructure(text) {
   const tp = body.match(/<TalkingPoints\b([\s\S]*?)\/>/)?.[1] ?? '';
   if (!tp) errors.push('missing talking points (<TalkingPoints>)');
   else if (!/text:\s*(['"])(?!\1)/.test(tp)) errors.push('talking points are empty');
-  const sources = sourcesList(body);
-  if (sources.length === 0) errors.push('missing sources (<Sources>)');
-  else if (!sources.some((s) => s.original)) errors.push('no source is marked original: true');
+  const sources = fm.success ? fm.data.sources ?? [] : [];
+  const sourcesAt = body.indexOf('<CheckSources');
+  const evidenceAt = body.indexOf('What the evidence actually shows');
+  const rightAt = body.indexOf('What the headline gets right');
+  if (sourcesAt === -1) errors.push('missing the sources section (<CheckSources sources={frontmatter.sources} />)');
+  else if (sourcesAt < evidenceAt || (rightAt !== -1 && sourcesAt > rightAt)) {
+    errors.push('<CheckSources> must sit right after "What the evidence actually shows"');
+  }
+  for (const n of new Set(citedNumbers(body))) {
+    if (n < 1 || n > sources.length) errors.push(`citation #source-${n} points past the ${sources.length} sources`);
+  }
+  if (data?.draft) {
+    sources.forEach((s, i) => {
+      for (const model of ['haiku', 'chatgpt']) {
+        if (!s.verification?.[model]) warnings.push(`source ${i + 1}: no ${model} check yet (needed before publishing)`);
+      }
+    });
+  }
   if (statCards(body).length === 0) warnings.push('no stat cards in "What the evidence actually shows"');
   return { errors, warnings, data, body, sources };
 }

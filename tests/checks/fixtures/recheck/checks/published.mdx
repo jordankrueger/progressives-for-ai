@@ -1,0 +1,50 @@
+---
+title: "Fixture: a published check"
+category: "headline"
+draft: false
+sources:
+  - url: "https://fixture.test/study"
+    title: "The study"
+    outlet: "Fixture Journal"
+    date: "2025-01"
+    type: "peer-reviewed"
+    isOriginal: true
+    supportsClaim: "The study found 519 ml per email."
+    quote: "about 519 milliliters per email"
+    verification:
+      haiku: { date: "2026-10-01", result: "supports" }
+      chatgpt: { date: "2026-10-01", result: "supports" }
+  - url: "https://fixture.test/gone"
+    title: "A page that went away"
+    outlet: "Fixture News"
+    date: "2025-02-03"
+    type: "news-report"
+    supportsClaim: "Data centers use under 0.2% of U.S. water."
+    quote: "under 0.2 percent"
+    verification:
+      haiku: { date: "2026-10-01", result: "supports" }
+      chatgpt: { date: "2026-10-01", result: "supports" }
+      recheck: { date: "2026-09-01", status: "ok", jevConfidence: 0.9 }
+  - url: "https://fixture.test/rewritten"
+    title: "A page that was rewritten"
+    outlet: "Fixture Blog"
+    date: "2025"
+    type: "news-report"
+    supportsClaim: "Golf uses three times more water."
+    quote: "golf uses three times as much"
+    verification:
+      haiku: { date: "2026-10-01", result: "supports" }
+      chatgpt: { date: "2026-10-01", result: "partly" }
+  - url: "https://fixture.test/report.pdf"
+    title: "A PDF report"
+    outlet: "Fixture Agency"
+    date: "2024"
+    type: "government-data"
+    supportsClaim: "Golf courses use 531 billion gallons a year."
+    quote: "531 billion gallons"
+    verification:
+      haiku: { date: "2026-10-01", result: "supports" }
+      chatgpt: { date: "2026-10-01", result: "supports" }
+---
+
+Body.

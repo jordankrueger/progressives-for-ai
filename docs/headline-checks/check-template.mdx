@@ -6,7 +6,6 @@ topic: "Environment"
 topicPage: "water"
 published: 2026-01-01
 updated: 2026-01-01
-sourceCount: 0
 changelog:
   - date: "Jan 2026"
     note: "First published."
@@ -23,16 +22,35 @@ shortVersion:
   - "Line two."
   - "Line three."
 shareReply: "A calm, sourced reply someone can paste under a post sharing this headline."
+sources:
+  # Original source first: the study, report or survey the headline is based on.
+  # Each card on the page shows these fields. One source backs one claim on our page.
+  - url: "https://example.org/the-study"
+    title: "Title as published"
+    outlet: "Publisher or journal"
+    date: "2026-01-01"            # YYYY, YYYY-MM or YYYY-MM-DD
+    type: "peer-reviewed"         # see sourceType list below
+    isOriginal: true
+    supportsClaim: "The one claim on our page this source backs, in one sentence."
+    quote: "A short exact quote from the source that backs it (under 400 characters)."
+    verification:
+      # Written by the Claude Haiku subagent in the research routine (one per source):
+      haiku: { date: "2026-01-01", result: "supports", note: "One sentence." }
+      # chatgpt: written by the source-check-chatgpt workflow on the PR. Don't hand-write it.
+      # recheck: written by the monthly Jev re-check ("ok" only). A person sets warnings:
+      #   recheck: { date: "2026-02-01", status: "link-down" }   # or "changed", "needs-new-source"
 draft: true
 ---
 
 import Stat from '../../../components/Stat.astro';
 import TalkingPoints from '../../../components/TalkingPoints.astro';
-import Sources from '../../../components/Sources.astro';
+import CheckSources from '../../../components/CheckSources.astro';
 
 {/* Copy to src/content/reality-check/checks/<slug>.mdx. Keep these headings, in this order.
     verdict: holds-up | mostly-holds-up | mixed | overblown | doesnt-hold-up | too-early | out-of-date
-    sourceType: peer-reviewed | preprint | industry-report | survey | anecdote
+    sourceType and sources[].type: peer-reviewed | preprint | industry-report | survey |
+      government-data | news-report | nonprofit-report | anecdote
+    Cite a source inline as <sup><a href="#source-2">2</a></sup> (numbers follow the sources list).
     topicPage: id of a Reality Check topic page (water, energy). */}
 
 <h2><span class="num">02</span>Where the claim came from</h2>
@@ -41,23 +59,20 @@ import Sources from '../../../components/Sources.astro';
 
 <Stat big="" desc="" source="" />
 
-<h2><span class="num">04</span>What the headline gets right</h2>
+<CheckSources sources={frontmatter.sources} num="04" />
 
-<h2><span class="num">05</span>What it gets wrong or leaves out</h2>
+<h2><span class="num">05</span>What the headline gets right</h2>
 
-<h2><span class="num">06</span>Where the real concern is</h2>
+<h2><span class="num">06</span>What it gets wrong or leaves out</h2>
 
-<h2><span class="num">07</span>What we're not sure about</h2>
+<h2><span class="num">07</span>Where the real concern is</h2>
+
+<h2><span class="num">08</span>What we're not sure about</h2>
 
 <div class="real-move">
-  <h2><span class="num">08</span>The progressive move</h2>
+  <h2><span class="num">09</span>The progressive move</h2>
   <p>Optional. Delete this block if there is no clear ask.</p>
 </div>
 
 <TalkingPoints points={[{ text: '', source: '' }]} url="https://progressivesforai.com/checks/<slug>/" />
 
-<Sources
-  sources={[
-    { title: '', url: 'https://example.org', verified: '2026-01-01', note: '', original: true },
-  ]}
-/>

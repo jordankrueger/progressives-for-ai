@@ -17,8 +17,8 @@ const sample = readFileSync('src/content/reality-check/checks/bottle-of-water.md
 test('sample check passes the structure check', () => {
   const r = checkStructure(sample);
   assert.deepEqual(r.errors, []);
-  assert.equal(r.sources.length, 5);
-  assert.equal(r.sources.filter((s) => s.original).length, 1);
+  assert.equal(r.sources.length, 4);
+  assert.equal(r.sources[0].isOriginal, true);
 });
 
 test('verdict off the scale fails', () => {
@@ -40,9 +40,9 @@ test('sections out of order fail', () => {
   assert.ok(r.errors.some((e) => e.includes('out of order')), r.errors.join('\n'));
 });
 
-test('no source marked original fails', () => {
-  const r = checkStructure(sample.replace('original: true,', ''));
-  assert.ok(r.errors.includes('no source is marked original: true'));
+test('first source not marked original fails', () => {
+  const r = checkStructure(sample.replace('    isOriginal: true\n', ''));
+  assert.ok(r.errors.some((e) => e.includes('first source must be the original')), r.errors.join('\n'));
 });
 
 test('short version must be exactly three lines', () => {
@@ -136,8 +136,8 @@ test('tally text', () => {
 
 test('commented-out sections and empty talking points do not count', () => {
   const commented = sample.replace(
-    '<h2><span class="num">04</span>What the headline gets right</h2>',
-    '{/* <h2><span class="num">04</span>What the headline gets right</h2> */}',
+    '<h2><span class="num">05</span>What the headline gets right</h2>',
+    '{/* <h2><span class="num">05</span>What the headline gets right</h2> */}',
   );
   assert.ok(checkStructure(commented).errors.includes('missing section "What the headline gets right"'));
   const empty = sample.replace(/<TalkingPoints[\s\S]*?\/>/, '<TalkingPoints points={[]} />');

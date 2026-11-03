@@ -26,6 +26,9 @@ export const SOURCE_TYPES = [
   { id: 'preprint', label: 'Preprint' },
   { id: 'industry-report', label: 'Company or industry report' },
   { id: 'survey', label: 'Survey' },
+  { id: 'government-data', label: 'Government data' },
+  { id: 'news-report', label: 'News report' },
+  { id: 'nonprofit-report', label: 'Nonprofit report' },
   { id: 'anecdote', label: 'Anecdote' },
 ];
 export const SOURCE_TYPE_IDS = SOURCE_TYPES.map((s) => s.id);
@@ -42,6 +45,84 @@ export const REQUIRED_SECTIONS = [
 ];
 export const OPTIONAL_SECTIONS = ['The progressive move'];
 
+const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'use YYYY-MM-DD');
+// YAML reads an unquoted 2026-11-03 as a Date; store it as the day string either way.
+const day = (inner) => z.preprocess((v) => (v instanceof Date ? v.toISOString().slice(0, 10) : v), inner);
+
+// --- Sources: each check's sources live in its frontmatter (`sources:`), original first.
+// Every source is checked twice before publishing (Claude Haiku in the research routine,
+// ChatGPT in the source-check-chatgpt workflow) and re-checked monthly through Jev.
+export const MODEL_RESULTS = [
+  { id: 'supports', label: 'Supports' },
+  { id: 'partly', label: 'Partly supports' },
+  { id: 'doesnt-support', label: "Doesn't support" },
+];
+export const RECHECK_STATUSES = [
+  { id: 'ok', label: 'Still live and still says this' },
+  { id: 'link-down', label: 'Link down' },
+  { id: 'changed', label: 'No longer says this' },
+  { id: 'needs-new-source', label: 'Needs a new source' },
+];
+const modelCheck = z.strictObject({
+  date: day(isoDay),
+  result: z.enum(MODEL_RESULTS.map((r) => r.id)),
+  note: z.string().optional(),
+  for: z.string().optional(), // sourceFingerprint() of the source when it was checked
+});
+const recheck = z.strictObject({
+  date: day(isoDay),
+  status: z.enum(RECHECK_STATUSES.map((r) => r.id)),
+  jevConfidence: z.number().min(0).max(1).nullable().optional(), // null: link checked, text not read (PDF)
+  httpStatus: z.number().int().optional(),
+  finalUrl: z.url({ protocol: /^https?$/ }).optional(),
+  note: z.string().optional(),
+});
+export const sourceSchema = z.strictObject({
+  url: z.url({ protocol: /^https?$/ }),
+  title: z.string().min(1),
+  outlet: z.string().min(1),
+  date: day(z.string().regex(/^\d{4}(-\d{2}(-\d{2})?)?$/, 'use YYYY, YYYY-MM or YYYY-MM-DD')),
+  type: z.enum(SOURCE_TYPE_IDS),
+  isOriginal: z.boolean().default(false),
+  supportsClaim: z.string().min(1), // the one claim on our page this source backs
+  quote: z.string().min(1).max(400), // short exact quote from the source
+  verification: z
+    .strictObject({
+      haiku: modelCheck.optional(),
+      chatgpt: modelCheck.optional(),
+      recheck: recheck.optional(),
+      sample: z.boolean().optional(), // placeholder results on a template check
+    })
+    .default({}),
+});
+
+// Same text in, same id out: a model check is only valid for the url, quote and claim it read.
+export function sourceFingerprint(s) {
+  const str = [s.url, s.quote, s.supportsClaim].join('|');
+  let h = 0x811c9dc5; // FNV-1a, 32-bit: enough to notice an edit, not a security boundary
+  for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 0x01000193) >>> 0;
+  return h.toString(16).padStart(8, '0');
+}
+
+// Publishing rules for a check's sources. Drafts only need the shape and the original first.
+export function sourceIssues(sources, { draft }) {
+  const issues = [];
+  if (!sources?.length) return ['sources: at least one source is required'];
+  if (!sources[0].isOriginal) issues.push('sources: the first source must be the original (isOriginal: true)');
+  if (draft) return issues;
+  sources.forEach((s, i) => {
+    const v = s.verification ?? {};
+    if (v.sample) issues.push(`sources.${i}: sample verification can't be published`);
+    for (const model of ['haiku', 'chatgpt']) {
+      const c = v[model];
+      if (!c) issues.push(`sources.${i}: no ${model} check (every source is checked by Claude Haiku and ChatGPT)`);
+      else if (c.result === 'doesnt-support') issues.push(`sources.${i}: ${model} says this source doesn't support the claim`);
+      else if (c.for && c.for !== sourceFingerprint(s)) issues.push(`sources.${i}: ${model} check is stale (url, quote or claim changed since)`);
+    }
+  });
+  return issues;
+}
+
 // Frontmatter fields only a headline check carries (category: headline).
 export const headlineFields = {
   headline: z.string().min(1),
@@ -55,11 +136,11 @@ export const headlineFields = {
   bottomLine: z.string().min(1),
   shortVersion: z.array(z.string().min(1)).length(3),
   shareReply: z.string().min(1),
+  sources: z.array(sourceSchema).min(1),
 };
 
 // Sightings live on the orphan branch `headline-data` (see docs/headline-checks/data-branch/):
 // sightings/YYYY-MM-DD.json is an array of these, one row per place a claim was seen.
-const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'use YYYY-MM-DD');
 export const CANDIDATE_STATUSES = ['candidate', 'researching', 'drafted', 'published', 'dropped'];
 export const sightingSchema = z.strictObject({
   headline: z.string().min(1), // as published
@@ -116,5 +197,9 @@ export const realityCheckSchema = z
     const parsed = z.object(headlineFields).safeParse(data);
     if (!parsed.success) {
       for (const issue of parsed.error.issues) ctx.addIssue({ ...issue, message: `headline check: ${issue.message}` });
+      return;
+    }
+    for (const message of sourceIssues(parsed.data.sources, { draft: data.draft })) {
+      ctx.addIssue({ code: 'custom', path: ['sources'], message });
     }
   });

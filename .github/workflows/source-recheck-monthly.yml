@@ -1,0 +1,99 @@
+# Monthly re-check of every published check's sources through Jev (TypeSafe.AI).
+# Code fetches each source (HTTP status, final URL, text); Jev judges whether the page still
+# says the quote and supports the claim. See docs/headline-checks/PIPELINE.md.
+#
+# Nothing negative reaches the live site from here. Only "ok" results are written, to the
+# branch source-recheck/YYYY-MM (the default branch requires status checks, so a workflow
+# can't push to it). Down, changed, unreadable and low-confidence sources go only into one
+# issue, "Sources need attention, <Month YYYY>". A person sets any warning status by hand.
+#
+# OFF by default: runs only when the repo variable SOURCE_RECHECK_JEV is "on". Needs the
+# TYPESAFE_API_KEY repo secret; without it the job notes that and exits cleanly.
+# Manual runs can choose a dry run (fixtures, no network, no key, nothing written).
+name: Source re-check (monthly, Jev)
+
+on:
+  schedule:
+    - cron: '17 13 1 * *' # 1st of each month, 13:17 UTC (about 9am ET)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run with test fixtures (no network, nothing written)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: source-recheck-monthly
+  cancel-in-progress: false
+
+jobs:
+  recheck:
+    if: vars.SOURCE_RECHECK_JEV == 'on'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Dry run
+        if: inputs.dry_run
+        run: node scripts/checks/recheck-sources.mjs --dry-run
+      - name: Check for the TypeSafe key
+        id: key
+        if: ${{ !inputs.dry_run }}
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          if [ -z "$TYPESAFE_API_KEY" ]; then
+            echo "::notice::TYPESAFE_API_KEY repo secret is not set; skipping the monthly source re-check."
+            echo "TYPESAFE_API_KEY repo secret is not set; the monthly source re-check was skipped." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Re-check sources
+        id: recheck
+        if: steps.key.outputs.ready == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          branch="source-recheck/$(date -u +%Y-%m)"
+          echo "BRANCH=$branch" >> "$GITHUB_ENV"
+          echo "MONTH_NAME=$(date -u '+%B %Y')" >> "$GITHUB_ENV"
+          node scripts/checks/recheck-sources.mjs --write --branch "$branch" --report "$RUNNER_TEMP/report.md"
+          cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Push the "ok" dates to this month's branch
+        if: steps.key.outputs.ready == 'true' && steps.recheck.outputs.updated != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- src/content/reality-check/checks; then echo "No date changes."; exit 0; fi
+          git switch -c "$BRANCH"
+          git add src/content/reality-check/checks
+          git commit -m "Source re-check: $MONTH_NAME dates (ok sources only)"
+          # A re-run in the same month replaces that month's branch (it only ever holds this job's commit).
+          git push origin "+HEAD:refs/heads/$BRANCH"
+      - name: Open or update the monthly issue
+        if: steps.key.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FLAGGED: ${{ steps.recheck.outputs.flagged }}
+          UPDATED: ${{ steps.recheck.outputs.updated }}
+        run: |
+          if [ "$FLAGGED" != "0" ]; then title="Sources need attention, $MONTH_NAME"
+          elif [ "$UPDATED" != "0" ]; then title="Source re-check dates ready, $MONTH_NAME"
+          else echo "Nothing flagged and nothing to merge."; exit 0; fi
+          existing=$(gh issue list --state open --limit 50 --json number,title \
+            --jq "map(select(.title == \"$title\")) | .[0].number // empty")
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$RUNNER_TEMP/report.md"
+          else
+            gh issue create --title "$title" --body-file "$RUNNER_TEMP/report.md"
+          fi

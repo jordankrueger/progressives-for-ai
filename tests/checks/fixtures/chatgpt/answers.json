@@ -1,0 +1,4 @@
+[
+  { "match": "The study found 519 ml per email.", "answer": { "result": "supports", "quoteFound": true, "note": "The page gives 519 milliliters per email." } },
+  { "match": "Golf uses three times more water.", "answer": { "result": "doesnt-support", "quoteFound": false, "note": "The page no longer compares golf and data centers." } }
+]

@@ -52,7 +52,7 @@ const jsonLd = {
         <div class="meta">
           <span>Checked {formatDate(d.published)}</span>
           {d.updated.valueOf() !== d.published.valueOf() && <span>Updated {formatDate(d.updated)}</span>}
-          {d.sourceCount && <span>{d.sourceCount} sources</span>}
+          {d.sources?.length ? <span><a href="#sources">{d.sources.length} sources, each checked twice</a></span> : null}
         </div>
 
         <figure class="as-published">

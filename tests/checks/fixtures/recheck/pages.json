@@ -1,0 +1,5 @@
+{
+  "https://fixture.test/study": { "kind": "html", "status": 200, "finalUrl": "https://fixture.test/study", "text": "Results. We estimate about 519 milliliters per email for GPT-4." },
+  "https://fixture.test/rewritten": { "kind": "html", "status": 200, "finalUrl": "https://fixture.test/rewritten-2026", "text": "This post has been updated and no longer compares golf and data centers." },
+  "https://fixture.test/report.pdf": { "kind": "file", "status": 200, "finalUrl": "https://fixture.test/report.pdf" }
+}

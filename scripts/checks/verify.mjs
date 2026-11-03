@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 // npm run checks:verify [-- files...] [--offline]
 // Checks headline-check MDX files: frontmatter + verdict scale, required sections in order,
-// talking points, sources (one marked original), every source link loads, and (warn only)
-// stat-card numbers appear in a fetched source. Defaults to every file in the checks folder.
+// talking points, sources (original first; both model checks before publishing), the sources
+// section placement, citation numbers, every source link loads, and (warn only) stat-card
+// numbers and each source's quote appear in the fetched page. Defaults to every file in the checks folder.
 // --offline (or CHECKS_OFFLINE=1) skips the network checks.
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { checkLinks, checkStatsInSources, checkStructure, statCards } from './lib.mjs';
+import { quoteFound } from './sources.mjs';
 
 const CHECKS_DIR = 'src/content/reality-check/checks';
 const args = process.argv.slice(2);
@@ -21,6 +23,10 @@ for (const file of files) {
     const links = await checkLinks(sources.map((s) => s.url));
     errors.push(...links.errors);
     warnings.push(...links.warnings, ...checkStatsInSources(statCards(body), links.texts));
+    sources.forEach((s, i) => {
+      const text = links.texts.get(s.url);
+      if (text && !quoteFound(text, s.quote)) warnings.push(`source ${i + 1}: quote not found word for word on the page (check it by hand)`);
+    });
   }
   console.log(`${errors.length ? 'FAIL' : 'ok  '} ${file}${offline ? ' (offline: links not checked)' : ''}`);
   for (const e of errors) console.log(`  error: ${e}`);

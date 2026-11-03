@@ -32,6 +32,11 @@ pages after the first research PR.
 The research routine is told to edit only the new `.mdx` file and to push once, so the
 expected cost is one OpenAI review per research PR, at most two research PRs a week.
 
+Two more paid workflows exist for sources, both **off** until a repo variable turns them on
+(see "Source checks" below): the ChatGPT source check on check PRs (about 2 to 5 cents per
+check) and the monthly Jev re-check (a few cents a month, plus one OpenAI review when its
+date branch is merged).
+
 What costs nothing: pushes to `headline-data` or to `check/*` branches with no PR open, the
 `headline-checks.yml` and `validate-data.yml` workflows (free on a public repo), and the
 Cloudflare Pages preview build every branch push gets.
@@ -88,18 +93,95 @@ The shortlist scores reach, engagement, momentum (these signals) and checkabilit
 
 1. **Pin the claim.** The headline exactly as published, outlet, date, link; the claim in one sentence.
 2. **Read the original.** The study, report or survey itself, not coverage of it. Record its type.
+   Every source gets a short exact quote and the one claim it backs, then a Claude Haiku check.
 3. **Gather context,** including evidence for the headline, not only against it.
 4. **Second-opinion pass.** Reread the draft against the sources as a skeptic and fix what fails.
 5. **Verdict from the scale,** rating the headline as written, not the study.
 
 The question is always "what's the verdict?", never "debunk this".
 
+## Source checks
+
+Sources are a main part of every check page: a "Check our sources" section sits right after
+the evidence, one card per source (outlet, title, date, type, the claim it backs, a short exact
+quote, an "Open source" button and its check results). The original source is card 1. Inline
+citations (`<sup><a href="#source-N">N</a></sup>`) jump to and highlight the card.
+
+Data lives in the check's frontmatter, `sources:` (schema: `sourceSchema` in
+`src/lib/check-scale.mjs`): `url, title, outlet, date, type, isOriginal, supportsClaim, quote`
+and `verification: { haiku, chatgpt, recheck }`.
+
+**Every source is checked twice before publishing**, by two different AI models reading the
+page on their own:
+
+1. **Claude Haiku**, in the research routine (`tasks/research.md` step 6): one Haiku subagent
+   per source fetches the page and writes `verification.haiku`. Runs on Jordan's Claude plan.
+2. **ChatGPT**, in `.github/workflows/source-check-chatgpt.yml` on the check's PR (Jordan's
+   ChatGPT subscription can't be called from automation, so this uses the `OPENAI_API_KEY`
+   repo secret). Code fetches each page and sends the part around the quote (12,000 characters,
+   about 3,000 tokens) to `gpt-5.4-mini` with a 300-token answer cap and at most 12 sources per
+   run. It commits `verification.chatgpt` to the PR branch and comments a summary. Only new or
+   edited sources are sent (each result stores a fingerprint of url + quote + claim, and an
+   edit makes it stale). PDFs and paywalled pages are reported "check by hand".
+   **Off unless the repo variable `SOURCE_CHECK_CHATGPT` is `on`.**
+
+Publishing rule (schema, so `checks:validate`, `checks:verify` and the build all enforce it): a
+check with `draft: false` needs a `haiku` and a `chatgpt` result on every source, each
+`supports` or `partly`. `doesnt-support`, a stale ChatGPT result, or `sample: true` blocks it.
+Drafts only warn.
+
+**Cost of the ChatGPT check** (`gpt-5.4-mini` list price $0.75 per million input tokens and
+$4.50 per million output, checked 2026-11-03): about 3,300 input and up to 300 output tokens per
+source, so **about $0.003 to $0.004 a source, $0.02 to $0.025 for a typical 6-source check, at
+most about $0.05 a run** (12-source cap). At two checks a week, well under $0.25 a month.
+Re-pushes cost nothing for sources that didn't change.
+
+### Monthly re-check through Jev
+
+`.github/workflows/source-recheck-monthly.yml` runs on the 1st of each month (and by hand).
+For every published check it fetches each source in code (HTTP status, final URL, page text)
+and asks Jev (TypeSafe.AI, `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`,
+Bearer key) two yes/no questions: does the page still say the quote, and does it still support
+the claim. If the quote is on the page word for word, code counts that as "still says it".
+Confidence is the lower of the two answers.
+
+**Nothing negative reaches the live site without Jordan.** The job writes only "ok" results
+(confidence 0.7 or higher, or a live PDF whose text isn't read) and only refreshes their "Last
+re-checked" date. Everything else goes only into one issue, **"Sources need attention, <Month
+YYYY>"**, with the HTTP status and Jev's confidence: links that are down, pages that may no
+longer say it (under 0.4), low-confidence results (0.4 to 0.7), and bot walls or paywalls it
+couldn't read. The issue suggests "find a new source" when a source fails again after a month
+with no good re-check. The page shows a warning badge ("Link down", "No longer says this",
+"Needs a new source") only after a person sets `verification.recheck.status` in the check file,
+and the job never overwrites a status a person set.
+
+The "ok" dates go to branch `source-recheck/YYYY-MM`, not `main`: `main` requires the two
+status checks (with admins included), so a workflow can't push to it. The issue ("Sources need
+attention" or, if nothing failed, "Source re-check dates ready") links a one-click pull request.
+Merging it starts one OpenAI Logic Review (the files are `.mdx`, so the security review skips).
+Leaving it unmerged is harmless: the page keeps showing the previous re-check date.
+
+**Off unless the repo variable `SOURCE_RECHECK_JEV` is `on`**, and it needs the
+`TYPESAFE_API_KEY` repo secret; without the secret it notes that and exits cleanly. A manual
+run can tick "dry run": fixtures from `tests/checks/fixtures/recheck/`, no network, nothing
+written. Locally: `npm run checks:recheck -- --dry-run`.
+
+**Cost of the re-check:** Jev bills input only, $0.042 per million tokens. Each source sends at
+most about 15,000 tokens of page text, so about **$0.0006 a source, roughly 3 cents a month for
+50 sources**. Plus the one OpenAI review if the date branch is merged.
+
+### Turning the source checks on
+
+1. Add the repo secret `TYPESAFE_API_KEY` (`OPENAI_API_KEY` already exists).
+2. Set the repo variables `SOURCE_CHECK_CHATGPT` = `on` and `SOURCE_RECHECK_JEV` = `on`.
+
 ## Verdict scale
 
 Defined once in `src/lib/check-scale.mjs` and shown on `/checks/how-we-check/`:
 Holds up, Mostly holds up, Mixed, Overblown, Doesn't hold up, Too early to tell, Out of date.
 
-Source types: peer-reviewed study, preprint, company or industry report, survey, anecdote.
+Source types: peer-reviewed study, preprint, company or industry report, survey, government
+data, news report, nonprofit report, anecdote.
 
 ## Checks on every draft
 
@@ -110,8 +192,12 @@ on PRs touching checks):
 - the required sections are present and in order: Where the claim came from, What the evidence
   actually shows, What the headline gets right, What it gets wrong or leaves out, Where the real
   concern is, What we're not sure about (The progressive move is optional);
-- talking points present; sources present with one marked `original: true`;
-- every source link loads (404, 5xx and network errors fail; 401/403/429 bot walls warn);
+- talking points present; sources in the frontmatter with the original first, and (for
+  `draft: false`) both model checks passing on every source;
+- the `<CheckSources>` section sits right after "What the evidence actually shows", and every
+  inline citation number points at a source;
+- every source link loads (404, 5xx and network errors fail; 401/403/429 bot walls warn), and
+  each source's quote is on its page (warning only);
 - stat-card numbers appear in a fetched source's text (best effort, warning only; PDFs and
   paywalled pages are not read).
 
