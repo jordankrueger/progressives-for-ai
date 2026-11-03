@@ -35,7 +35,8 @@ export function replaceSources(text, sources) {
   const start = lines.findIndex((l) => /^sources:\s*$/.test(l));
   if (start === -1) throw new Error('frontmatter has no "sources:" block');
   let stop = start + 1;
-  while (stop < lines.length && (lines[stop] === '' || /^[\s-]/.test(lines[stop]) || lines[stop].startsWith('#'))) stop++;
+  // The block is its own indented or "- " lines; an unindented line (next key or comment) ends it.
+  while (stop < lines.length && (lines[stop] === '' || /^[\s-]/.test(lines[stop]))) stop++;
   // Trailing blank lines belong to whatever follows.
   while (stop > start + 1 && lines[stop - 1] === '') stop--;
   const block = yaml.dump({ sources }, { lineWidth: -1, noRefs: true, quotingType: '"' }).trimEnd();
@@ -56,7 +57,10 @@ export const normalize = (s) =>
     .replace(/\s+/g, ' ')
     .trim();
 
-export const quoteFound = (text, quote) => normalize(text).includes(normalize(quote).replace(/[.\s]+$/, ''));
+export function quoteFound(text, quote) {
+  const needle = normalize(quote).replace(/[.\s]+$/, '');
+  return needle.length >= 3 && normalize(text).includes(needle); // an empty needle would match every page
+}
 
 // The part of the page a model reads: a window around the quote if it is there, else the top.
 export function clipAround(text, quote, maxChars) {

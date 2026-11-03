@@ -85,7 +85,7 @@ export const sourceSchema = z.strictObject({
   type: z.enum(SOURCE_TYPE_IDS),
   isOriginal: z.boolean().default(false),
   supportsClaim: z.string().min(1), // the one claim on our page this source backs
-  quote: z.string().min(1).max(400), // short exact quote from the source
+  quote: z.string().max(400).refine((q) => (q.match(/[\p{L}\p{N}]/gu) ?? []).length >= 3, 'quote needs real words'), // short exact quote from the source
   verification: z
     .strictObject({
       haiku: modelCheck.optional(),
@@ -117,7 +117,8 @@ export function sourceIssues(sources, { draft }) {
       const c = v[model];
       if (!c) issues.push(`sources.${i}: no ${model} check (every source is checked by Claude Haiku and ChatGPT)`);
       else if (c.result === 'doesnt-support') issues.push(`sources.${i}: ${model} says this source doesn't support the claim`);
-      else if (c.for && c.for !== sourceFingerprint(s)) issues.push(`sources.${i}: ${model} check is stale (url, quote or claim changed since)`);
+      else if (!c.for) issues.push(`sources.${i}: ${model} check has no fingerprint ("for"); run npm run checks:fingerprint -- <file> --stamp haiku`);
+      else if (c.for !== sourceFingerprint(s)) issues.push(`sources.${i}: ${model} check is stale (url, quote or claim changed since)`);
     }
   });
   return issues;

@@ -48,15 +48,17 @@ export function assess(source, fetched, jev, { date, quoteOnPage = false }) {
     last && last.status !== 'ok' // a person set a warning: never undo it automatically
       ? problem('person-flagged', `marked "${last.status}" by a person, but the re-check now looks fine; clear it by hand if so`, recheck.jevConfidence)
       : { recheck };
-  if (fetched.kind === 'file') return ok({ ...base, status: 'ok', jevConfidence: null, note: 'Link live; file text not read.' });
-  const confidence = Math.round((quoteOnPage ? jev.supports : Math.min(jev.says, jev.supports)) * 100) / 100;
-  if (confidence < CHANGED_BELOW) return problem('changed', 'Jev says the page no longer says this', confidence);
+  if (fetched.kind === 'file') return problem('unread-file', `link live (${fetched.contentType || 'not a web page'}), but the text wasn't read: open it and check the quote by hand`);
+  // Compare the raw probability; round only for display.
+  const raw = quoteOnPage ? jev.supports : Math.min(jev.says, jev.supports);
+  const confidence = Math.round(raw * 100) / 100;
+  if (raw < CHANGED_BELOW) return problem('changed', 'Jev says the page no longer says this', confidence);
   if (!quoteOnPage) return problem('quote-missing', 'the quote is not on the page word for word; Jev thinks it still says it, check by hand', confidence);
-  if (confidence < OK_AT) return problem('low-confidence', 'the quote is there, but Jev is unsure it still supports the claim', confidence);
+  if (raw < OK_AT) return problem('low-confidence', 'the quote is there, but Jev is unsure it still supports the claim', confidence);
   return ok({ ...base, status: 'ok', jevConfidence: confidence });
 }
 
-const LABEL = { 'quote-missing': 'Quote not found', 'person-flagged': 'Flagged by a person', 'link-down': 'Link down', blocked: "Couldn't read (bot wall or paywall)", changed: 'May no longer say this', 'low-confidence': 'Low confidence' };
+const LABEL = { 'unread-file': 'File not read (PDF?)', 'quote-missing': 'Quote not found', 'person-flagged': 'Flagged by a person', 'link-down': 'Link down', blocked: "Couldn't read (bot wall or paywall)", changed: 'May no longer say this', 'low-confidence': 'Low confidence' };
 
 export function reportMarkdown(problems, { date, updated, branch, repo }) {
   const lines = [];
@@ -140,7 +142,7 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   run().catch((e) => {
-    console.error(e instanceof JevError ? `Jev error: ${e.message}` : e);
+    console.error(e instanceof JevError ? `Jev error: ${e.message}` : `error: ${e.message}`);
     process.exit(1);
   });
 }

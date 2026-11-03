@@ -47,7 +47,9 @@ export function prompt(source, pageText) {
 
 export async function askOpenAI(input, { key = process.env.OPENAI_API_KEY, fetchImpl = fetch, model = MODEL } = {}) {
   if (!key) throw new Error('OPENAI_API_KEY is not set');
-  const res = await fetchImpl('https://api.openai.com/v1/responses', {
+  let res;
+  try {
+    res = await fetchImpl('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -58,7 +60,11 @@ export async function askOpenAI(input, { key = process.env.OPENAI_API_KEY, fetch
       text: { format: { type: 'json_schema', name: 'source_check', strict: true, schema: SCHEMA } },
     }),
     signal: AbortSignal.timeout(60000),
-  });
+    });
+  } catch (e) {
+    // Never pass the original error on: a malformed key can end up in its message.
+    throw new Error(`could not reach OpenAI (${e?.name ?? 'error'})`);
+  }
   if (!res.ok) throw new Error(`OpenAI returned HTTP ${res.status}`);
   const body = await res.json();
   const text = body.output?.flatMap((o) => o.content ?? []).find((c) => c.type === 'output_text')?.text;
@@ -76,6 +82,7 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
   const dryRun = args.includes('--dry-run');
   const write = args.includes('--write') && !dryRun;
   const max = Number(opt('--max-sources') ?? MAX_SOURCES);
+  if (!Number.isInteger(max) || max < 1 || max > MAX_SOURCES) throw new Error(`--max-sources must be a whole number from 1 to ${MAX_SOURCES}`);
   const date = opt('--today') ?? today();
   const fixtures = opt('--fixtures') ?? 'tests/checks/fixtures/chatgpt';
 

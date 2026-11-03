@@ -121,14 +121,17 @@ page on their own:
    repo secret). Code fetches each page and sends the part around the quote (12,000 characters,
    about 3,000 tokens) to `gpt-5.4-mini` with a 300-token answer cap and at most 12 sources per
    run. It commits `verification.chatgpt` to the PR branch and comments a summary. Only new or
-   edited sources are sent (each result stores a fingerprint of url + quote + claim, and an
-   edit makes it stale). PDFs and paywalled pages are reported "check by hand".
+   edited sources are sent. PDFs and paywalled pages are reported "check by hand".
    **Off unless the repo variable `SOURCE_CHECK_CHATGPT` is `on`.**
+
+Each result stores a fingerprint (`for`) of the url, quote and claim it checked; editing any of
+them makes the result stale. The ChatGPT workflow stamps its own; the research routine stamps
+Haiku's with `npm run checks:fingerprint -- <file> --stamp haiku`.
 
 Publishing rule (schema, so `checks:validate`, `checks:verify` and the build all enforce it): a
 check with `draft: false` needs a `haiku` and a `chatgpt` result on every source, each
-`supports` or `partly`. `doesnt-support`, a stale ChatGPT result, or `sample: true` blocks it.
-Drafts only warn.
+`supports` or `partly` and stamped with the current fingerprint. `doesnt-support`, a missing or
+stale fingerprint, or `sample: true` blocks it. Drafts only warn.
 
 **Cost of the ChatGPT check** (`gpt-5.4-mini` list price $0.75 per million input tokens and
 $4.50 per million output, checked 2026-11-03): about 3,300 input and up to 300 output tokens per
@@ -153,11 +156,12 @@ issue as "Quote not found" with Jev's read, for a person to judge (pages that re
 land here).
 
 **Nothing negative reaches the live site without Jordan.** The job writes only "ok" results
-(above, or a live PDF whose text isn't read, shown as "link still live") and only refreshes
-their "Last re-checked" date. Everything else goes only into one issue, **"Sources need
+(above) and only refreshes their "Last re-checked" date. A PDF or other file is never "ok":
+its text isn't read, so it goes to the issue as "File not read" for a person to open. Everything else goes only into one issue, **"Sources need
 attention, <Month YYYY>"**, with the HTTP status and Jev's confidence: links that are down,
 pages that may no longer say it (under 0.4), quotes not found, low-confidence results (0.4 to
-0.7), and bot walls or paywalls it couldn't read. The issue suggests "find a new source" when a source fails again after a month
+0.7), PDFs, and bot walls or paywalls it couldn't read. Thresholds compare the raw score; the
+issue shows it rounded. The issue suggests "find a new source" when a source fails again after a month
 with no good re-check. The page shows a warning badge ("Link down", "No longer says this",
 "Needs a new source") only after a person sets `verification.recheck.status` in the check file,
 and the job never overwrites a status a person set.

@@ -39,23 +39,17 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Find changed checks
+      - name: Ask ChatGPT about each new or edited source
         id: files
         env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          files=$(git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD -- 'src/content/reality-check/checks/*.mdx' | tr '\n' ' ')
-          echo "files=$files" >> "$GITHUB_OUTPUT"
-          echo "Changed checks: ${files:-none}"
-      - name: Ask ChatGPT about each new or edited source
-        if: steps.files.outputs.files != ''
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          FILES: ${{ steps.files.outputs.files }}
-        run: |
-          # FILES is a space-separated list of repo paths from git diff, split on purpose.
-          # shellcheck disable=SC2086
-          node scripts/checks/source-check-chatgpt.mjs $FILES --write --comment "$RUNNER_TEMP/comment.md"
+          # NUL-delimited into an array, so any file name stays one argument.
+          mapfile -d '' files < <(git diff -z --name-only --diff-filter=AM "$BASE_SHA"...HEAD -- 'src/content/reality-check/checks/*.mdx')
+          if [ "${#files[@]}" -eq 0 ]; then echo "No changed checks."; echo "files=" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "files=yes" >> "$GITHUB_OUTPUT"
+          node scripts/checks/source-check-chatgpt.mjs --write --comment "$RUNNER_TEMP/comment.md" -- "${files[@]}"
       - name: Commit results to the PR branch
         if: steps.files.outputs.files != ''
         env:
