@@ -1,0 +1,32 @@
+# Free checks for Headline Checks content. No model calls, no secrets.
+# Runs the checker tests, schema validation and checks:verify (structure + live source links).
+name: Headline checks
+
+on:
+  pull_request:
+    paths:
+      - 'src/content/reality-check/checks/**'
+      - 'src/lib/check-scale.mjs'
+      - 'scripts/checks/**'
+      - 'tests/checks/**'
+      - 'docs/headline-checks/**'
+      - '.github/workflows/headline-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:checks
+      - run: npm run checks:validate
+      # Source links that 404 or fail to load fail the job; bot walls (401/403/429) only warn.
+      - run: npm run checks:verify

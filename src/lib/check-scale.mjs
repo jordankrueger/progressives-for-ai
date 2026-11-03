@@ -76,3 +76,44 @@ export const sightingSchema = z.strictObject({
   status: z.enum(CANDIDATE_STATUSES).default('candidate'),
 });
 export const sightingsFileSchema = z.array(sightingSchema);
+
+// Drafts render in `astro dev`, on Cloudflare preview branches (CF_PAGES_BRANCH not main),
+// or with SHOW_DRAFTS=1. A production build never includes them.
+export function draftsVisible({ dev = false, env = {} } = {}) {
+  const branch = env.CF_PAGES_BRANCH;
+  return Boolean(dev || env.SHOW_DRAFTS === '1' || (branch && branch !== 'main'));
+}
+
+// "4 checked: 1 holds up, 2 overblown, 1 doesn't hold up" (zero counts left out).
+export function tallyText(verdictIds) {
+  const parts = VERDICTS.map((v) => {
+    const n = verdictIds.filter((id) => id === v.id).length;
+    return n ? `${n} ${n === 1 ? v.label.toLowerCase() : v.plural}` : '';
+  }).filter(Boolean);
+  return `${verdictIds.length} checked${parts.length ? `: ${parts.join(', ')}` : ''}`;
+}
+
+// Frontmatter schema for every Reality Check entry. Headline checks (category: headline)
+// must also carry all headlineFields. Shared by content.config.ts and scripts/checks/.
+export const realityCheckSchema = z
+  .object({
+    title: z.string(),
+    dek: z.string(),
+    category: z.enum(['myth', 'guide', 'tracker', 'headline']),
+    topic: z.string(),
+    published: z.date(),
+    updated: z.date(),
+    changelog: z.array(z.object({ date: z.string(), note: z.string() })),
+    readingTime: z.number().optional(),
+    sourceCount: z.number().optional(),
+    ogImage: z.string().optional(),
+    draft: z.boolean().default(false),
+  })
+  .extend(z.object(headlineFields).partial().shape)
+  .superRefine((data, ctx) => {
+    if (data.category !== 'headline') return;
+    const parsed = z.object(headlineFields).safeParse(data);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) ctx.addIssue({ ...issue, message: `headline check: ${issue.message}` });
+    }
+  });

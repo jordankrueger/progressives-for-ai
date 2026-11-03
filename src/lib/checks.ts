@@ -1,14 +1,11 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { VERDICTS } from './check-scale.mjs';
+import { draftsVisible, tallyText as tallyIds } from './check-scale.mjs';
 
 export type Check = CollectionEntry<'reality-check'>;
 
 const branch = process.env.CF_PAGES_BRANCH;
 
-// Drafts render in `astro dev`, on Cloudflare preview branches, or with SHOW_DRAFTS=1.
-// A production build (main, or a local build without those) never includes them.
-export const SHOW_DRAFTS =
-  import.meta.env.DEV || process.env.SHOW_DRAFTS === '1' || (!!branch && branch !== 'main');
+export const SHOW_DRAFTS = draftsVisible({ dev: import.meta.env.DEV, env: process.env });
 
 // Preview deploys point og:image at themselves so the card can be tested before launch.
 export const SITE_ORIGIN =
@@ -31,14 +28,7 @@ export async function getChecks(): Promise<Check[]> {
   return entries.sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
 }
 
-// "4 checked: 1 holds up, 2 overblown, 1 doesn't hold up" (zero counts left out).
-export function tallyText(checks: Check[]): string {
-  const parts = VERDICTS.map((v) => {
-    const n = checks.filter((c) => c.data.verdict === v.id).length;
-    return n ? `${n} ${n === 1 ? v.label.toLowerCase() : v.plural}` : '';
-  }).filter(Boolean);
-  return `${checks.length} checked${parts.length ? `: ${parts.join(', ')}` : ''}`;
-}
+export const tallyText = (checks: Check[]) => tallyIds(checks.map((c) => c.data.verdict as string));
 
 export const formatDate = (d: Date) =>
   new Intl.DateTimeFormat('en', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(d);
