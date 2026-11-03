@@ -46,12 +46,12 @@ export const OPTIONAL_SECTIONS = ['The progressive move'];
 export const headlineFields = {
   headline: z.string().min(1),
   outlet: z.string().min(1),
-  url: z.url(),
+  url: z.url({ protocol: /^https?$/ }),
   publishedDate: z.coerce.date(),
   verdict: z.enum(VERDICT_IDS),
   sourceType: z.enum(SOURCE_TYPE_IDS),
   topicPage: z.string().min(1), // id of a Reality Check topic page, e.g. "water"
-  trackerPrediction: z.url().optional(), // aiprogresstracker.com link
+  trackerPrediction: z.url({ protocol: /^https?$/ }).optional(), // aiprogresstracker.com link
   bottomLine: z.string().min(1),
   shortVersion: z.array(z.string().min(1)).length(3),
   shareReply: z.string().min(1),
@@ -64,9 +64,9 @@ export const CANDIDATE_STATUSES = ['candidate', 'researching', 'drafted', 'publi
 export const sightingSchema = z.strictObject({
   headline: z.string().min(1), // as published
   outlet: z.string().min(1), // who published the story
-  url: z.url(), // the story itself
+  url: z.url({ protocol: /^https?$/ }), // the story itself
   where: z.string().min(1), // "r/technology" or an outlet/aggregator name
-  discussionUrl: z.url().optional(), // the thread or listing where it was seen
+  discussionUrl: z.url({ protocol: /^https?$/ }).optional(), // the thread or listing where it was seen
   dateSeen: isoDay,
   upvotes: z.number().int().nonnegative().optional(), // only if visible in search results
   comments: z.number().int().nonnegative().optional(),

@@ -113,5 +113,5 @@ const jsonLd = {
       </div>
     </article>
   </main>
-  {!d.draft && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  {!d.draft && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, "\\u003c")} />}
 </Base>

@@ -102,6 +102,12 @@ test('sightings file: bad name, bad JSON, wrong day, unknown field and bad claim
   assert.ok(validateDataFile('sightings/2026-11-03.json', JSON.stringify([row({ dateSeen: '2026-11-02' })]))[0].includes('is not 2026-11-03'));
   assert.equal(validateDataFile('sightings/2026-11-03.json', JSON.stringify([row({ posterName: 'someone' })])).length, 1);
   assert.equal(validateDataFile('sightings/2026-11-03.json', JSON.stringify([row({ claimId: 'Not Kebab' })])).length, 1);
+  assert.equal(validateDataFile('sightings/2026-11-03.json', JSON.stringify([row({ url: 'javascript:alert(1)' })])).length, 1);
+});
+
+test('check urls must be http(s)', () => {
+  const r = checkStructure(sample.replace(/^url: ".*"$/m, 'url: "javascript:alert(1)"'));
+  assert.ok(r.errors.some((e) => e.includes('frontmatter url')), r.errors.join('\n'));
 });
 
 test('shortlist file: needs ISO-week name and a title', () => {
