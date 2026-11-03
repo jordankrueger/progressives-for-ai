@@ -11,7 +11,7 @@
 // answer per source. Key: OPENAI_API_KEY only. --dry-run uses fixtures, no network.
 import { readFile, writeFile } from 'node:fs/promises';
 import { sourceFingerprint } from '../../src/lib/check-scale.mjs';
-import { clipAround, fetchSource, loadCheck, quoteFound, replaceSources, today } from './sources.mjs';
+import { bestExcerpt, fetchSource, loadCheck, quoteFound, replaceSources, today } from './sources.mjs';
 
 export const MODEL = process.env.SOURCE_CHECK_MODEL || 'gpt-5.4-mini';
 export const MAX_SOURCES = 12;
@@ -107,7 +107,7 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
         continue;
       }
       sent++;
-      const { answer, usage: u } = await ask(prompt(s, clipAround(page.text, s.quote, MAX_PAGE_CHARS)));
+      const { answer, usage: u } = await ask(prompt(s, bestExcerpt(page.text, { quote: s.quote, claim: s.supportsClaim }, MAX_PAGE_CHARS)));
       usage.input += u.input_tokens ?? 0;
       usage.output += u.output_tokens ?? 0;
       const exact = quoteFound(page.text, s.quote);

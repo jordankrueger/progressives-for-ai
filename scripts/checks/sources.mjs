@@ -68,6 +68,24 @@ export function clipAround(text, quote, maxChars) {
   return text.slice(from, from + maxChars);
 }
 
+// The passages most likely to bear on a quote/claim, for a model to read: a window around
+// the quote when it is on the page; otherwise the chunks sharing the most words with it,
+// kept in page order. Small on purpose: Jev gets worse with large irrelevant text.
+export function bestExcerpt(text, query, maxChars) {
+  if (text.length <= maxChars) return text;
+  if (quoteFound(text, query.quote)) return clipAround(text, query.quote, maxChars);
+  const words = new Set(normalize(`${query.quote} ${query.claim ?? ''}`).match(/[a-z0-9.%]{4,}/g) ?? []);
+  const size = 600;
+  const chunks = [];
+  for (let i = 0; i < text.length; i += size) {
+    const chunk = text.slice(i, i + size);
+    const have = new Set(normalize(chunk).match(/[a-z0-9.%]{4,}/g) ?? []);
+    chunks.push({ i, chunk, score: [...words].filter((w) => have.has(w)).length });
+  }
+  const keep = chunks.sort((a, b) => b.score - a.score).slice(0, Math.floor(maxChars / (size + 3))).sort((a, b) => a.i - b.i);
+  return keep.map((c) => c.chunk).join(' … ');
+}
+
 // Fetch one source. kind: html (text read) | file (PDF etc., not read) | blocked | down.
 export async function fetchSource(url, { fetchImpl = fetch, timeoutMs = 20000 } = {}) {
   try {

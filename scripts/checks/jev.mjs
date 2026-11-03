@@ -5,7 +5,8 @@
 export const JEV_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
 export const JEV_MODEL = 'jev-latest';
 export const JEV_USD_PER_M_INPUT = 0.042; // output tokens are billed at zero
-// State + longest question must stay under 32K tokens; ~3 chars/token is pessimistic.
+// State + longest question must stay under 32K tokens (~3 chars/token, pessimistic).
+// Callers send far less: Jev gets worse with large irrelevant text.
 export const MAX_STATE_CHARS = 60000;
 
 export class JevError extends Error {}

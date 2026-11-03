@@ -12,11 +12,14 @@
 // --dry-run reads pages and Jev answers from tests/checks/fixtures/recheck/ (no network, no
 // key, never writes). Key: TYPESAFE_API_KEY only; if unset, exits 0 with a note.
 import { appendFile, readFile, writeFile } from 'node:fs/promises';
-import { JEV_USD_PER_M_INPUT, JevError, MAX_STATE_CHARS, askJev, noul } from './jev.mjs';
-import { CHECKS_DIR, checkFiles, clipAround, fetchSource, loadCheck, quoteFound, replaceSources, today } from './sources.mjs';
+import { JEV_USD_PER_M_INPUT, JevError, askJev, noul } from './jev.mjs';
+import { CHECKS_DIR, bestExcerpt, checkFiles, fetchSource, loadCheck, quoteFound, replaceSources, today } from './sources.mjs';
 
-export const OK_AT = 0.7; // Jev probability at or above this: still says it
+// Thresholds are starting points, not calibrated yet (see PIPELINE.md): set them from a
+// labeled sample of real sources once the TypeSafe key is in.
+export const OK_AT = 0.7; // Jev probability at or above this: still supports the claim
 export const CHANGED_BELOW = 0.4; // below this: looks like it no longer says it
+export const PAGE_CHARS = 6000; // page text sent to Jev per source
 const STALE_DAYS = 40; // last good re-check older than this and failing again: suggest a new source
 
 export const QUESTIONS = {
@@ -28,7 +31,10 @@ const daysBetween = (a, b) => (Date.parse(b) - Date.parse(a)) / 86400000;
 
 // Pure: what one source's re-check found. Returns { recheck } for a source that is fine,
 // { problem } otherwise. jev: { says, supports } probabilities, or undefined if not asked.
-export function assess(source, fetched, jev, { date }) {
+// "Still says this" goes on the public page only when CODE found the quote on the page:
+// Jev is not adversarially robust and a page can be written to sway it, so a model's yes
+// alone never produces an "ok". When the quote is missing, Jev's read goes to the issue.
+export function assess(source, fetched, jev, { date, quoteOnPage = false }) {
   const base = { date, httpStatus: fetched.status || undefined, finalUrl: fetched.finalUrl !== source.url ? fetched.finalUrl : undefined };
   const last = source.verification?.recheck;
   // Failing again with no good re-check in over a month (or a person already flagged it).
@@ -43,13 +49,14 @@ export function assess(source, fetched, jev, { date }) {
       ? problem('person-flagged', `marked "${last.status}" by a person, but the re-check now looks fine; clear it by hand if so`, recheck.jevConfidence)
       : { recheck };
   if (fetched.kind === 'file') return ok({ ...base, status: 'ok', jevConfidence: null, note: 'Link live; file text not read.' });
-  const confidence = Math.round(Math.min(jev.says, jev.supports) * 100) / 100;
+  const confidence = Math.round((quoteOnPage ? jev.supports : Math.min(jev.says, jev.supports)) * 100) / 100;
   if (confidence < CHANGED_BELOW) return problem('changed', 'Jev says the page no longer says this', confidence);
-  if (confidence < OK_AT) return problem('low-confidence', 'Jev is unsure the page still says this', confidence);
+  if (!quoteOnPage) return problem('quote-missing', 'the quote is not on the page word for word; Jev thinks it still says it, check by hand', confidence);
+  if (confidence < OK_AT) return problem('low-confidence', 'the quote is there, but Jev is unsure it still supports the claim', confidence);
   return ok({ ...base, status: 'ok', jevConfidence: confidence });
 }
 
-const LABEL = { 'person-flagged': 'Flagged by a person', 'link-down': 'Link down', blocked: "Couldn't read (bot wall or paywall)", changed: 'May no longer say this', 'low-confidence': 'Low confidence' };
+const LABEL = { 'quote-missing': 'Quote not found', 'person-flagged': 'Flagged by a person', 'link-down': 'Link down', blocked: "Couldn't read (bot wall or paywall)", changed: 'May no longer say this', 'low-confidence': 'Low confidence' };
 
 export function reportMarkdown(problems, { date, updated, branch, repo }) {
   const lines = [];
@@ -104,14 +111,15 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
     for (const [index, source] of check.sources.entries()) {
       const fetched = await getPage(source.url);
       let jev;
+      const quoteOnPage = fetched.kind === 'html' && quoteFound(fetched.text, source.quote);
       if (fetched.kind === 'html') {
-        const state = { page: clipAround(fetched.text, source.quote, MAX_STATE_CHARS - 2000), quote: source.quote, claim: source.supportsClaim };
+        const query = { quote: source.quote, claim: source.supportsClaim };
+        const state = { page: bestExcerpt(fetched.text, query, PAGE_CHARS), ...query };
         const r = await ask(state); // a JevError (bad key, outage) stops the run: nothing half-written
         tokens += r.inputTokens;
-        jev = { ...r.answers };
-        if (quoteFound(fetched.text, source.quote)) jev.says = 1; // exact text on the page beats a model's guess
+        jev = r.answers;
       }
-      const result = assess(source, fetched, jev, { date });
+      const result = assess(source, fetched, jev, { date, quoteOnPage });
       log(`${result.recheck ? 'ok  ' : 'FLAG'} ${name} #${index + 1} ${source.url}${result.problem ? ` (${result.problem.status})` : ''}`);
       if (result.problem) problems.push({ check: name, index, title: source.title, url: source.url, ...result.problem });
       else {

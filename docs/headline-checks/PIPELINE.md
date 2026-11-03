@@ -142,15 +142,22 @@ Re-pushes cost nothing for sources that didn't change.
 For every published check it fetches each source in code (HTTP status, final URL, page text)
 and asks Jev (TypeSafe.AI, `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`,
 Bearer key) two yes/no questions: does the page still say the quote, and does it still support
-the claim. If the quote is on the page word for word, code counts that as "still says it".
-Confidence is the lower of the two answers.
+the claim. Jev reads only about 6,000 characters: the passage around the quote, or the
+passages sharing the most words with it (Jev gets worse with large irrelevant text).
+
+**"Still says this" needs code, not just the model.** A source is written as "ok" only when
+code finds the quote on the page word for word (ignoring case, curly quotes and spacing) and
+Jev's "supports the claim" answer is 0.7 or higher. Jev can be swayed by text written for it,
+so a model's yes alone never changes the page. If the quote is missing, the source goes to the
+issue as "Quote not found" with Jev's read, for a person to judge (pages that reword a quote
+land here).
 
 **Nothing negative reaches the live site without Jordan.** The job writes only "ok" results
-(confidence 0.7 or higher, or a live PDF whose text isn't read) and only refreshes their "Last
-re-checked" date. Everything else goes only into one issue, **"Sources need attention, <Month
-YYYY>"**, with the HTTP status and Jev's confidence: links that are down, pages that may no
-longer say it (under 0.4), low-confidence results (0.4 to 0.7), and bot walls or paywalls it
-couldn't read. The issue suggests "find a new source" when a source fails again after a month
+(above, or a live PDF whose text isn't read, shown as "link still live") and only refreshes
+their "Last re-checked" date. Everything else goes only into one issue, **"Sources need
+attention, <Month YYYY>"**, with the HTTP status and Jev's confidence: links that are down,
+pages that may no longer say it (under 0.4), quotes not found, low-confidence results (0.4 to
+0.7), and bot walls or paywalls it couldn't read. The issue suggests "find a new source" when a source fails again after a month
 with no good re-check. The page shows a warning badge ("Link down", "No longer says this",
 "Needs a new source") only after a person sets `verification.recheck.status` in the check file,
 and the job never overwrites a status a person set.
@@ -166,9 +173,16 @@ Leaving it unmerged is harmless: the page keeps showing the previous re-check da
 run can tick "dry run": fixtures from `tests/checks/fixtures/recheck/`, no network, nothing
 written. Locally: `npm run checks:recheck -- --dry-run`.
 
-**Cost of the re-check:** Jev bills input only, $0.042 per million tokens. Each source sends at
-most about 15,000 tokens of page text, so about **$0.0006 a source, roughly 3 cents a month for
-50 sources**. Plus the one OpenAI review if the date branch is merged.
+**Cost of the re-check:** Jev bills input only, $0.042 per million tokens. Each source sends
+about 2,000 tokens, so about **$0.0001 a source, under 1 cent a month for 50 sources**. Plus the
+one OpenAI review if the date branch is merged.
+
+**The thresholds (0.4 and 0.7) are starting points, not calibrated.** Jordan's Jev plan sets
+thresholds from a labeled sample of real data, and when Jev is wrong, fixes the question
+wording first. Once the key is in: run `npm run checks:recheck` (no `--write`) on the published
+checks, compare each answer with what the page actually says, and adjust `OK_AT` /
+`CHANGED_BELOW` or the question text in `scripts/checks/recheck-sources.mjs`. Cost: a fraction
+of a cent.
 
 ### Turning the source checks on
 
