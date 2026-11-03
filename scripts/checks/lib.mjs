@@ -58,7 +58,8 @@ export function statCards(body) {
 export const citedNumbers = (body) => [...body.matchAll(/href="#source-(\d+)"/g)].map((m) => Number(m[1]));
 
 // Structural checks that need no network. Returns { errors, warnings }.
-export function checkStructure(text) {
+// topicIds: ids of the existing topic pages, when the caller knows them (verify.mjs does).
+export function checkStructure(text, { topicIds } = {}) {
   const errors = [];
   const warnings = [];
   let parsed;
@@ -72,6 +73,7 @@ export function checkStructure(text) {
   const fm = realityCheckSchema.safeParse(data);
   if (!fm.success) errors.push(...zodErrors(fm.error).map((e) => `frontmatter ${e}`));
   if (data?.category !== 'headline') errors.push('frontmatter category must be "headline"');
+  if (topicIds && data?.topicPage && !topicIds.includes(data.topicPage)) warnings.push(`topicPage "${data.topicPage}" is not an existing topic page (${topicIds.join(', ')}); the topic link is left off the page`);
 
   const titles = sectionTitles(body);
   let last = -1;

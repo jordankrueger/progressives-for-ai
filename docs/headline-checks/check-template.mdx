@@ -24,14 +24,15 @@ shortVersion:
 shareReply: "A calm, sourced reply someone can paste under a post sharing this headline."
 sources:
   # Original source first: the study, report or survey the headline is based on.
-  # Each card on the page shows these fields. One source backs one claim on our page.
+  # Each card on the page shows these fields. supportsClaim names the main claim a source backs;
+  # a source can be cited for more than one. A republished copy of a story is not a second source.
   - url: "https://example.org/the-study"
     title: "Title as published"
     outlet: "Publisher or journal"
     date: "2026-01-01"            # YYYY, YYYY-MM or YYYY-MM-DD
     type: "peer-reviewed"         # see sourceType list below
     isOriginal: true
-    supportsClaim: "The one claim on our page this source backs, in one sentence."
+    supportsClaim: "The main claim on our page this source backs, in one sentence."
     quote: "A short exact quote from the source that backs it (under 400 characters)."
     verification:
       # Written by the Claude Haiku subagent in the research routine (one per source):
@@ -52,7 +53,7 @@ import CheckSources from '../../../components/CheckSources.astro';
     sourceType and sources[].type: peer-reviewed | preprint | industry-report | survey |
       government-data | news-report | nonprofit-report | anecdote
     Cite a source inline as <sup><a href="#source-2">2</a></sup> (numbers follow the sources list).
-    topicPage: id of a Reality Check topic page (water, energy). */}
+    topicPage: id of an existing Reality Check topic page (water, energy). Leave it out if none fits. */}
 
 <h2><span class="num">02</span>Where the claim came from</h2>
 
