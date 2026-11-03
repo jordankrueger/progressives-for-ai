@@ -1,0 +1,13 @@
+---
+import { verdictById } from '../lib/check-scale.mjs';
+
+interface Props {
+  verdict: string;
+  size?: 'sm' | 'lg';
+}
+
+const { verdict, size = 'sm' } = Astro.props;
+const v = verdictById(verdict);
+---
+
+{v && <span class:list={['verdict-badge', size]} style={`--vc:${v.color}`}>{v.label}</span>}

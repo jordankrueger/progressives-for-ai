@@ -1,0 +1,117 @@
+---
+import { getEntry } from 'astro:content';
+import Base from './Base.astro';
+import NewsletterSignup from '../components/NewsletterSignup.astro';
+import SharePack from '../components/SharePack.astro';
+import CopyButton from '../components/CopyButton.astro';
+import VerdictBadge from '../components/VerdictBadge.astro';
+import { sourceTypeById, verdictById } from '../lib/check-scale.mjs';
+import { CHECKS_EMAIL, SITE_ORIGIN, checkSlug, formatDate, type Check } from '../lib/checks';
+
+interface Props {
+  entry: Check;
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const slug = checkSlug(entry);
+const verdict = verdictById(d.verdict)!;
+const canonicalUrl = `https://progressivesforai.com/checks/${slug}/`;
+const ogImage = `${SITE_ORIGIN}/checks/og/${slug}.png`;
+const topicPage = await getEntry('reality-check', d.topicPage!);
+const shareBlurb = `“${d.headline}” (${d.outlet}): ${verdict.label}. ${d.bottomLine}`;
+const mistakeHref = `mailto:${CHECKS_EMAIL}?subject=${encodeURIComponent(`Mistake report: ${d.title}`)}&body=${encodeURIComponent(`Page: ${canonicalUrl}\n\nWhat's wrong:\n\nYour source:\n`)}`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ClaimReview',
+  url: canonicalUrl,
+  datePublished: d.published.toISOString(),
+  claimReviewed: d.headline,
+  itemReviewed: {
+    '@type': 'Claim',
+    appearance: { '@type': 'CreativeWork', url: d.url, datePublished: d.publishedDate!.toISOString(), publisher: { '@type': 'Organization', name: d.outlet } },
+  },
+  reviewRating: { '@type': 'Rating', alternateName: verdict.label },
+  author: { '@type': 'Organization', name: 'Progressives for AI', url: 'https://progressivesforai.com' },
+};
+---
+
+<Base title={`${d.title} | Headline Checks | Progressives for AI`} description={d.bottomLine} ogImage={ogImage} noindex={d.draft}>
+  <main class="rc-page">
+    <article class="rc-article check-article">
+      {d.draft && (
+        <div class="sample-banner">Sample, not a published check. Drafts only appear on preview builds.</div>
+      )}
+      <div class="pad">
+        <div class="crumb"><a href="/reality-check/">Reality Check</a> / <a href="/checks/">Headline Checks</a></div>
+        <div class="check-tags">
+          <span class="badge">Headline check · {d.topic}</span>
+          <span class="source-type">{sourceTypeById(d.sourceType)?.label}</span>
+        </div>
+        <h1>{d.title}</h1>
+        <div class="meta">
+          <span>Checked {formatDate(d.published)}</span>
+          {d.updated.valueOf() !== d.published.valueOf() && <span>Updated {formatDate(d.updated)}</span>}
+          {d.sourceCount && <span>{d.sourceCount} sources</span>}
+        </div>
+
+        <figure class="as-published">
+          <div class="label">The headline as published</div>
+          <blockquote>“{d.headline}”</blockquote>
+          <figcaption>
+            {d.outlet} · {formatDate(d.publishedDate!)} · <a href={d.url} rel="noopener">Read the original</a>
+          </figcaption>
+        </figure>
+
+        <div class="verdict check-verdict" style={`--vc:${verdict.color}`}>
+          <div class="label">Our verdict</div>
+          <VerdictBadge verdict={d.verdict!} size="lg" />
+          <p>{d.bottomLine}</p>
+        </div>
+
+        <h2><span class="num">01</span>The short version</h2>
+        <ul class="short-version">
+          {d.shortVersion!.map((line) => <li>{line}</li>)}
+        </ul>
+
+        <slot />
+      </div>
+
+      <div class="changelog">
+        <h3>What changed</h3>
+        {d.changelog.map((c) => (
+          <div class="row"><span class="d">{c.date}</span>{c.note}</div>
+        ))}
+        <p class="mistake">Spot a mistake? <a href={mistakeHref}>Tell us</a> and we'll fix it in the open, with a note here.</p>
+      </div>
+
+      <div class="pad related">
+        <h3>Related</h3>
+        <ul>
+          {topicPage && <li>Topic: <a href={`/reality-check/${topicPage.id}/`}>{topicPage.data.title}</a></li>}
+          {d.trackerPrediction && <li>Prediction on the AI Progress Tracker: <a href={d.trackerPrediction} rel="noopener">see how it's tracking</a></li>}
+          <li><a href="/checks/">All headline checks</a> · <a href="/checks/how-we-check/">How we check</a></li>
+        </ul>
+      </div>
+
+      <div class="pad sharepad">
+        <SharePack title="Share this check" blurb={shareBlurb} url={canonicalUrl} extended>
+          <div class="share-extras">
+            <a class="download-card" href={`/checks/og/${slug}.png`} download={`headline-check-${slug}.png`}>Download the verdict card</a>
+            <div class="reply">
+              <div class="label">Reply to someone sharing this headline</div>
+              <p>{d.shareReply}</p>
+              <CopyButton text={`${d.shareReply} ${canonicalUrl}`} label="Copy reply" />
+            </div>
+          </div>
+        </SharePack>
+        <div class="rc-newsletter">
+          <h2>Get the next headline check</h2>
+          <p>Evidence-forward AI analysis for progressives, sent by email.</p>
+          <NewsletterSignup formId="checkForm" />
+        </div>
+      </div>
+    </article>
+  </main>
+  {!d.draft && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+</Base>

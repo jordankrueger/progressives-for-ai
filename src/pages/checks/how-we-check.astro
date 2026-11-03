@@ -1,0 +1,51 @@
+---
+import Base from '../../layouts/Base.astro';
+import VerdictBadge from '../../components/VerdictBadge.astro';
+import { VERDICTS, SOURCE_TYPES } from '../../lib/check-scale.mjs';
+import { CHECKS_EMAIL } from '../../lib/checks';
+---
+
+<Base
+  title="How we check | Headline Checks | Progressives for AI"
+  description="How Progressives for AI checks viral AI headlines: the method, the verdict scale, and the ground rules."
+>
+  <main class="rc-page">
+    <article class="rc-article">
+      <div class="pad">
+        <div class="crumb"><a href="/reality-check/">Reality Check</a> / <a href="/checks/">Headline Checks</a> / How we check</div>
+        <h1>How we check</h1>
+        <p class="dek">AI headlines travel fast and the studies behind them travel slowly. Here is how we close that gap.</p>
+
+        <h2><span class="num">01</span>The method</h2>
+        <ol class="method">
+          <li><strong>Pin the claim.</strong> We write down exactly what the headline says, in its own words, before reading anything else.</li>
+          <li><strong>Read the original.</strong> We go to the study, report or survey the headline is about, not a summary of it, and note what kind of source it is.</li>
+          <li><strong>Gather context.</strong> We look for what else is known, including evidence that supports the headline, not only evidence against it.</li>
+          <li><strong>Get a second opinion.</strong> A separate review pass reads the draft against the sources and tries to find where we went wrong.</li>
+          <li><strong>Give a verdict.</strong> We pick one rating from the scale below and say in one sentence why.</li>
+        </ol>
+
+        <h2><span class="num">02</span>The verdict scale</h2>
+        <dl class="scale">
+          {VERDICTS.map((v) => (
+            <div><dt><VerdictBadge verdict={v.id} /></dt><dd>{v.meaning}</dd></div>
+          ))}
+        </dl>
+        <p>Each check also says what kind of source the headline rests on: {SOURCE_TYPES.map((s) => s.label.toLowerCase()).join(', ')}.</p>
+
+        <h2><span class="num">03</span>Ground rules</h2>
+        <ul class="rules">
+          <li><strong>We rate the headline as written, not the study.</strong> A careful study can sit under a careless headline. We judge the words people actually share.</li>
+          <li><strong>We say when a headline holds up.</strong> Plenty of worries about AI are well founded. When the evidence backs a headline, that is our verdict, and every check has a section on what the headline gets right.</li>
+          <li><strong>We fix mistakes in the open.</strong> Every check has a "What changed" log. If you find an error, <a href={`mailto:${CHECKS_EMAIL}?subject=${encodeURIComponent('Mistake report')}`}>tell us</a> and we will correct it there.</li>
+          <li><strong>We use AI, and a person signs off.</strong> AI tools help us spot headlines and do first-pass research. A person reviews every check before it is published.</li>
+          <li><strong>We link our sources.</strong> Every number links to where it came from, and the original source is marked.</li>
+        </ul>
+
+        <h2><span class="num">04</span>Who runs this</h2>
+        <p>Progressives for AI is an independent newsletter and site for progressives who want to understand AI, shape how it is built, and use it for progressive change. It is run by Jordan Krueger, who works with progressive nonprofit advocacy groups on technology and operations.</p>
+        <p><a href="/checks/">See all headline checks</a> · <a href="/checks/send-a-headline/">Send us a headline</a></p>
+      </div>
+    </article>
+  </main>
+</Base>

@@ -1,9 +1,10 @@
 ---
 import { getCollection, render } from 'astro:content';
 import RealityCheck from '../../layouts/RealityCheck.astro';
+import { getChecks } from '../../lib/checks';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('reality-check', ({ data }) => data.draft !== true);
+  const entries = await getCollection('reality-check', ({ data }) => data.draft !== true && data.category !== 'headline');
 
   return entries.map((entry) => ({
     params: { slug: entry.id },
@@ -13,8 +14,9 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const relatedChecks = (await getChecks()).filter((c) => c.data.topicPage === entry.id);
 ---
 
-<RealityCheck {...entry.data}>
+<RealityCheck {...entry.data} relatedChecks={relatedChecks}>
   <Content />
 </RealityCheck>

@@ -1,0 +1,132 @@
+---
+title: "Does every AI email really use a bottle of water?"
+dek: "The bottle-per-email figure is a real modeled estimate, but it is an upper-end number for one older model, and it says little about the water fight that matters, which is local."
+category: "headline"
+topic: "Environment"
+topicPage: "water"
+published: 2026-11-03
+updated: 2026-11-03
+sourceCount: 5
+changelog:
+  - date: "Nov 2026"
+    note: "Sample check written to test the page template."
+headline: "A bottle of water per email: the hidden environmental costs of using AI chatbots"
+outlet: "The Washington Post"
+url: "https://www.washingtonpost.com/technology/2024/09/18/energy-ai-use-electricity-water-data-centers/"
+publishedDate: 2024-09-18
+verdict: "overblown"
+sourceType: "preprint"
+bottomLine: "The bottle-per-email number is a real estimate, but it is a high-end figure for one older model, and national totals show data center water use is small next to golf courses and lawns."
+shortVersion:
+  - "The figure comes from UC Riverside researchers' model of GPT-4: about 519 ml of water for one 100-word email, counting power-plant cooling."
+  - "It changes several-fold depending on where the data center sits, and all U.S. data centers use under 0.2% of the country's water."
+  - "The real water problem is local: a single big data center can strain one stressed community."
+shareReply: "That bottle-per-email number is a modeled high-end estimate for an older model. All U.S. data centers use under 0.2% of the country's water. The real fight is where a single facility strains a local supply."
+draft: true
+---
+
+import Stat from '../../../components/Stat.astro';
+import TalkingPoints from '../../../components/TalkingPoints.astro';
+import Sources from '../../../components/Sources.astro';
+
+{/* SAMPLE: exercises the template. Figures reuse the audited water page; the WaPo
+    numbers come from secondary coverage and must be checked against the article. */}
+
+<h2><span class="num">02</span>Where the claim came from</h2>
+
+In September 2024 The Washington Post worked with researchers at the University of California, Riverside to estimate how much water and electricity ChatGPT, running GPT-4, uses to write a 100-word email.<sup><a href="#source-1">1</a></sup> The method builds on the team's 2023 preprint, "Making AI Less Thirsty."<sup><a href="#source-2">2</a></sup> The bottle comparison spread from there.
+
+<h2><span class="num">03</span>What the evidence actually shows</h2>
+
+<Stat
+  big="519 ml"
+  desc="Modeled water for one 100-word GPT-4 email, counting water used to cool servers and to generate their electricity. The estimate varies widely by data center location."
+  source="The Washington Post with UC Riverside (2024)"
+/>
+
+<Stat
+  big="under 0.2%"
+  desc="Share of total U.S. water withdrawals used by all U.S. data centers combined, about 163 billion gallons against roughly 117 trillion."
+  source="Ars Technica (2026), citing USGS and a 2021 Nature study"
+/>
+
+<Stat
+  big="≈ 3×"
+  desc="U.S. golf courses use about three times more water than every data center in the country combined."
+  source="USGA / Center for Irrigation Technology; Ars Technica (2026)"
+/>
+
+<h2><span class="num">04</span>What the headline gets right</h2>
+
+AI does use water, mostly to cool servers and to generate the electricity they run on. The Riverside team's work was among the first to make that visible, and companies have published more of their own figures since.<sup><a href="#source-2">2</a></sup><sup><a href="#source-4">4</a></sup>
+
+<h2><span class="num">05</span>What it gets wrong or leaves out</h2>
+
+"A bottle per email" reads like a fixed fact. It is a modeled estimate for one model in 2024, and it changes several-fold depending on the data center's location and power source. It also invites people to scale a per-use number into a national crisis, when all U.S. data centers together use a sliver of the country's water.<sup><a href="#source-3">3</a></sup>
+
+<h2><span class="num">06</span>Where the real concern is</h2>
+
+The honest worry is local. A data center draws from one watershed, and roughly 40 percent of planned and existing U.S. data centers sit in areas of high or extremely high water scarcity.<sup><a href="#source-3">3</a></sup> That is where siting rules and disclosure matter.
+
+<h2><span class="num">07</span>What we're not sure about</h2>
+
+Per-prompt water use for today's models is mostly self-reported by the companies, with different methods. Independent, current measurements would settle it.
+
+<div class="real-move">
+  <h2><span class="num">08</span>The progressive move</h2>
+  <p>Push for mandatory, facility-level water reporting and siting rules for water-stressed areas, rather than arguing over per-email math.</p>
+</div>
+
+<TalkingPoints
+  points={[
+    {
+      text: 'The "bottle per email" figure is a modeled 2024 estimate for GPT-4, and it varies a lot by location.',
+      source: 'The Washington Post with UC Riverside (2024)',
+    },
+    {
+      text: 'All U.S. data centers together use under 0.2% of the water the country withdraws each year.',
+      source: 'Ars Technica (2026)',
+    },
+    {
+      text: "AI's water problem is local. The fix is siting and disclosure rules where water is scarce.",
+      source: 'Ars Technica (2026)',
+    },
+  ]}
+  url="https://progressivesforai.com/checks/bottle-of-water/"
+/>
+
+<Sources
+  sources={[
+    {
+      title: 'The Washington Post — "A bottle of water per email: the hidden environmental costs of using AI chatbots"',
+      url: 'https://www.washingtonpost.com/technology/2024/09/18/energy-ai-use-electricity-water-data-centers/',
+      verified: '2026-11-03',
+      note: 'The headline being checked; GPT-4 email estimate with UC Riverside.',
+      original: true,
+    },
+    {
+      title: 'Li, Yang, Islam, Ren — "Making AI Less Thirsty" (arXiv preprint, 2023)',
+      url: 'https://arxiv.org/abs/2304.03271',
+      verified: '2026-11-03',
+      note: 'The research method behind the estimate.',
+    },
+    {
+      title: 'Ars Technica — "When it comes to total water use, AI data centers are a drop in the bucket"',
+      url: 'https://arstechnica.com/ai/2026/06/when-it-comes-to-total-water-use-ai-data-centers-are-a-drop-in-the-bucket/',
+      verified: '2026-06-13',
+      note: 'National totals, comparisons and water-scarcity siting.',
+    },
+    {
+      title: 'EESI — Data Centers and Water Consumption',
+      url: 'https://www.eesi.org/articles/view/data-centers-and-water-consumption',
+      verified: '2026-04-27',
+      note: 'Context on data center water use.',
+    },
+    {
+      title: 'USGA / Center for Irrigation Technology — How much water does golf use?',
+      url: 'https://www.usga.org/content/dam/usga/pdf/Water%20Resource%20Center/how-much-water-does-golf-use.pdf',
+      verified: '2026-04-27',
+      note: 'U.S. golf course water use.',
+    },
+  ]}
+/>

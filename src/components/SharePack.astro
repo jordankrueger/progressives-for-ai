@@ -5,12 +5,23 @@ interface Props {
   blurb: string;
   url?: string;
   title?: string;
+  // Adds Threads, Facebook, LinkedIn and Reddit buttons (Headline Checks use this).
+  extended?: boolean;
 }
 
-const { blurb, url = Astro.url.href, title = 'Share this Reality Check' } = Astro.props;
+const { blurb, url = Astro.url.href, title = 'Share this Reality Check', extended = false } = Astro.props;
 const copyBlurb = `${blurb} ${url}`;
-const blueskyUrl = `https://bsky.app/intent/compose?text=${encodeURIComponent(copyBlurb)}`;
-const mailtoUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(copyBlurb)}`;
+const enc = encodeURIComponent;
+const blueskyUrl = `https://bsky.app/intent/compose?text=${enc(copyBlurb)}`;
+const mailtoUrl = `mailto:?subject=${enc(title)}&body=${enc(copyBlurb)}`;
+const more = extended
+  ? [
+      { label: 'Threads', href: `https://www.threads.net/intent/post?text=${enc(copyBlurb)}` },
+      { label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}` },
+      { label: 'LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}` },
+      { label: 'Reddit', href: `https://www.reddit.com/submit?url=${enc(url)}&title=${enc(blurb)}` },
+    ]
+  : [];
 ---
 
 <div class="sharepack">
@@ -24,5 +35,7 @@ const mailtoUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURI
     <CopyButton text={url} label="Copy link" className="primary" />
     <a href={blueskyUrl}>Post to Bluesky</a>
     <a href={mailtoUrl}>Email</a>
+    {more.map((m) => <a href={m.href} target="_blank" rel="noopener">{m.label}</a>)}
   </div>
+  <slot />
 </div>
