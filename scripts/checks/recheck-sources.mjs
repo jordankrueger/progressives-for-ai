@@ -48,7 +48,7 @@ export function assess(source, fetched, jev, { date, quoteOnPage = false }) {
     last && last.status !== 'ok' // a person set a warning: never undo it automatically
       ? problem('person-flagged', `marked "${last.status}" by a person, but the re-check now looks fine; clear it by hand if so`, recheck.jevConfidence)
       : { recheck };
-  if (fetched.kind === 'file') return problem('unread-file', `link live (${fetched.contentType || 'not a web page'}), but the text wasn't read: open it and check the quote by hand`);
+  if (fetched.kind === 'file') return problem('unread-file', `link still loads, needs a person: ${fetched.reason ?? 'text not readable'}`);
   // Compare the raw probability; round only for display.
   const raw = quoteOnPage ? jev.supports : Math.min(jev.says, jev.supports);
   const confidence = Math.round(raw * 100) / 100;
@@ -58,7 +58,7 @@ export function assess(source, fetched, jev, { date, quoteOnPage = false }) {
   return ok({ ...base, status: 'ok', jevConfidence: confidence });
 }
 
-const LABEL = { 'unread-file': 'File not read (PDF?)', 'quote-missing': 'Quote not found', 'person-flagged': 'Flagged by a person', 'link-down': 'Link down', blocked: "Couldn't read (bot wall or paywall)", changed: 'May no longer say this', 'low-confidence': 'Low confidence' };
+const LABEL = { 'unread-file': 'Link loads, text not readable', 'quote-missing': 'Quote not found', 'person-flagged': 'Flagged by a person', 'link-down': 'Link down', blocked: "Couldn't read (bot wall or paywall)", changed: 'May no longer say this', 'low-confidence': 'Low confidence' };
 
 export function reportMarkdown(problems, { date, updated, branch, repo }) {
   const lines = [];
@@ -113,8 +113,8 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
     for (const [index, source] of check.sources.entries()) {
       const fetched = await getPage(source.url);
       let jev;
-      const quoteOnPage = fetched.kind === 'html' && quoteFound(fetched.text, source.quote);
-      if (fetched.kind === 'html') {
+      const quoteOnPage = fetched.kind === 'text' && quoteFound(fetched.text, source.quote);
+      if (fetched.kind === 'text') {
         const query = { quote: source.quote, claim: source.supportsClaim };
         const state = { page: bestExcerpt(fetched.text, query, PAGE_CHARS), ...query };
         const r = await ask(state); // a JevError (bad key, outage) stops the run: nothing half-written

@@ -90,7 +90,20 @@ export function bestExcerpt(text, query, maxChars) {
   return keep.map((c) => c.chunk).join(' … ');
 }
 
-// Fetch one source. kind: html (text read) | file (PDF etc., not read) | blocked | down.
+export const MAX_PDF_BYTES = 30 * 1024 * 1024;
+const MIN_PDF_LETTERS = 200; // fewer than this: a scanned or image-only PDF, no text layer
+
+// Text of a PDF (unpdf, a devDependency). null when it has no text layer worth reading.
+export async function pdfText(bytes) {
+  const { extractText, getDocumentProxy } = await import('unpdf');
+  const pdf = await getDocumentProxy(new Uint8Array(bytes));
+  const { text } = await extractText(pdf, { mergePages: true });
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return (clean.match(/\p{L}/gu) ?? []).length >= MIN_PDF_LETTERS ? clean : null;
+}
+
+// Fetch one source. kind: text (page or PDF text read) | file (not readable: scanned PDF,
+// image, other file) | blocked | down.
 export async function fetchSource(url, { fetchImpl = fetch, timeoutMs = 20000 } = {}) {
   try {
     const res = await fetchImpl(url, {
@@ -103,9 +116,21 @@ export async function fetchSource(url, { fetchImpl = fetch, timeoutMs = 20000 } 
     if (!res.ok) return { kind: 'down', status: res.status, finalUrl };
     const type = res.headers.get('content-type') ?? '';
     if (type.includes('html') || type.startsWith('text/')) {
-      return { kind: 'html', status: res.status, finalUrl, text: htmlToText(await res.text()) };
+      return { kind: 'text', status: res.status, finalUrl, text: htmlToText(await res.text()) };
     }
-    return { kind: 'file', status: res.status, finalUrl, contentType: type };
+    if (type.includes('pdf') || /\.pdf($|[?#])/i.test(finalUrl)) {
+      const bytes = await res.arrayBuffer();
+      if (bytes.byteLength > MAX_PDF_BYTES) return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: 'PDF over 30 MB, not read' };
+      let text = null;
+      try {
+        text = await pdfText(bytes);
+      } catch {
+        return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: "PDF couldn't be parsed" };
+      }
+      if (text) return { kind: 'text', status: res.status, finalUrl, text, format: 'pdf' };
+      return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: 'PDF has no text layer (scanned or image-only)' };
+    }
+    return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: `not a web page or PDF (${type || 'unknown type'})` };
   } catch (e) {
     return { kind: 'down', status: 0, finalUrl: url, error: e.name === 'TimeoutError' ? 'timed out' : e.message };
   }

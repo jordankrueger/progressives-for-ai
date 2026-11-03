@@ -109,8 +109,8 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
       if (!needsCheck(s)) continue;
       if (sent >= max) { skippedForCap++; continue; }
       const page = await getPage(s.url);
-      if (page.kind !== 'html') {
-        rows.push({ file, n: i + 1, s, line: `⚠️ couldn't read the page (${page.kind === 'file' ? 'PDF or file' : `HTTP ${page.status || 'error'}`}): check by hand and add the chatgpt block` });
+      if (page.kind !== 'text') {
+        rows.push({ file, n: i + 1, s, line: `⚠️ couldn't read the page (${page.kind === 'file' ? page.reason : `HTTP ${page.status || 'error'}`}): check by hand and add the chatgpt block` });
         continue;
       }
       sent++;

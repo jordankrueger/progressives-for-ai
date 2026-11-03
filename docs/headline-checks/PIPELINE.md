@@ -121,7 +121,8 @@ page on their own:
    repo secret). Code fetches each page and sends the part around the quote (12,000 characters,
    about 3,000 tokens) to `gpt-5.4-mini` with a 300-token answer cap and at most 12 sources per
    run. It commits `verification.chatgpt` to the PR branch and comments a summary. Only new or
-   edited sources are sent. PDFs and paywalled pages are reported "check by hand".
+   edited sources are sent. PDFs are read too (text extracted in code); scanned PDFs with no
+   text and paywalled pages are reported "check by hand".
    **Off unless the repo variable `SOURCE_CHECK_CHATGPT` is `on`.**
 
 Each result stores a fingerprint (`for`) of the url, quote and claim it checked; editing any of
@@ -143,7 +144,7 @@ Re-pushes cost nothing for sources that didn't change.
 
 `.github/workflows/source-recheck-monthly.yml` runs on the 1st of each month (and by hand).
 For every published check it fetches each source in code (HTTP status, final URL, page text)
-and asks Jev (TypeSafe.AI, `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`,
+(PDFs included) and asks Jev (TypeSafe.AI, `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`,
 Bearer key) two yes/no questions: does the page still say the quote, and does it still support
 the claim. Jev reads only about 6,000 characters: the passage around the quote, or the
 passages sharing the most words with it (Jev gets worse with large irrelevant text).
@@ -156,11 +157,13 @@ issue as "Quote not found" with Jev's read, for a person to judge (pages that re
 land here).
 
 **Nothing negative reaches the live site without Jordan.** The job writes only "ok" results
-(above) and only refreshes their "Last re-checked" date. A PDF or other file is never "ok":
-its text isn't read, so it goes to the issue as "File not read" for a person to open. Everything else goes only into one issue, **"Sources need
+(above) and only refreshes their "Last re-checked" date. PDFs get the same check: code
+extracts their text (`unpdf`, a pinned devDependency) and looks for the quote, then Jev reads
+it. Only a PDF with no text layer (a scan, or an image) goes to the issue as "link still loads,
+needs a person", along with other files that aren't web pages. Everything else goes only into one issue, **"Sources need
 attention, <Month YYYY>"**, with the HTTP status and Jev's confidence: links that are down,
 pages that may no longer say it (under 0.4), quotes not found, low-confidence results (0.4 to
-0.7), PDFs, and bot walls or paywalls it couldn't read. Thresholds compare the raw score; the
+0.7), scanned PDFs, and bot walls or paywalls it couldn't read. Thresholds compare the raw score; the
 issue shows it rounded. The issue suggests "find a new source" when a source fails again after a month
 with no good re-check. The page shows a warning badge ("Link down", "No longer says this",
 "Needs a new source") only after a person sets `verification.recheck.status` in the check file,

@@ -18,11 +18,12 @@
     "@astrojs/mdx": "^6.0.3",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^6.4.6",
+    "js-yaml": "4.2.0",
     "satori": "0.63.2",
-    "sharp": "0.34.5",
-    "js-yaml": "4.2.0"
+    "sharp": "0.34.5"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.0"
+    "@playwright/test": "^1.48.0",
+    "unpdf": "1.9.1"
   }
 }
