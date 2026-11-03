@@ -168,6 +168,23 @@ Practical rules:
 
 Pages live in `src/content/reality-check/*.mdx`. To add one: create an `.mdx` file with the frontmatter schema in `src/content.config.ts` (title, dek, category, topic, published, updated, changelog, sourceCount), set `draft: false` to publish, and it auto-appears in the hub grouped by `category`. Every statistic must cite a verified source (see the `2026-*-claim/research-notes.md` folders).
 
+### Headline Checks
+
+Fact-checks of viral AI headlines at `/checks/`, stored in the Reality Check collection under
+`src/content/reality-check/checks/` (`category: headline`). Schema, verdict scale and required
+sections: `src/lib/check-scale.mjs`. Drafts (`draft: true`) render only in dev, on non-main
+Cloudflare preview builds, or with `SHOW_DRAFTS=1`. Share cards are rendered at build time
+(satori + sharp) to `/checks/og/<slug>.png`.
+
+```bash
+npm run checks:verify            # structure + live source links for every check (--offline skips links)
+npm run checks:validate          # schema check for checks and headline-data files
+npm run test:checks              # unit tests (no network)
+```
+
+How headlines get found and drafted (scheduled routines, the `headline-data` branch, and the
+cost of PRs into main): `docs/headline-checks/PIPELINE.md`.
+
 ### Worker (Cloudflare Workers)
 
 If you need to update the worker:

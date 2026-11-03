@@ -1,0 +1,63 @@
+---
+title: "Plain-language question the check answers"
+dek: "One or two sentences for search results and the page description."
+category: "headline"
+topic: "Environment"
+topicPage: "water"
+published: 2026-01-01
+updated: 2026-01-01
+sourceCount: 0
+changelog:
+  - date: "Jan 2026"
+    note: "First published."
+headline: "The headline exactly as published"
+outlet: "Outlet name"
+url: "https://example.org/the-story"
+publishedDate: 2026-01-01
+verdict: "mixed"
+sourceType: "peer-reviewed"
+# trackerPrediction: "https://aiprogresstracker.com/..."
+bottomLine: "One sentence: the verdict and why."
+shortVersion:
+  - "Line one."
+  - "Line two."
+  - "Line three."
+shareReply: "A calm, sourced reply someone can paste under a post sharing this headline."
+draft: true
+---
+
+import Stat from '../../../components/Stat.astro';
+import TalkingPoints from '../../../components/TalkingPoints.astro';
+import Sources from '../../../components/Sources.astro';
+
+{/* Copy to src/content/reality-check/checks/<slug>.mdx. Keep these headings, in this order.
+    verdict: holds-up | mostly-holds-up | mixed | overblown | doesnt-hold-up | too-early | out-of-date
+    sourceType: peer-reviewed | preprint | industry-report | survey | anecdote
+    topicPage: id of a Reality Check topic page (water, energy). */}
+
+<h2><span class="num">02</span>Where the claim came from</h2>
+
+<h2><span class="num">03</span>What the evidence actually shows</h2>
+
+<Stat big="" desc="" source="" />
+
+<h2><span class="num">04</span>What the headline gets right</h2>
+
+<h2><span class="num">05</span>What it gets wrong or leaves out</h2>
+
+<h2><span class="num">06</span>Where the real concern is</h2>
+
+<h2><span class="num">07</span>What we're not sure about</h2>
+
+<div class="real-move">
+  <h2><span class="num">08</span>The progressive move</h2>
+  <p>Optional. Delete this block if there is no clear ask.</p>
+</div>
+
+<TalkingPoints points={[{ text: '', source: '' }]} url="https://progressivesforai.com/checks/<slug>/" />
+
+<Sources
+  sources={[
+    { title: '', url: 'https://example.org', verified: '2026-01-01', note: '', original: true },
+  ]}
+/>
