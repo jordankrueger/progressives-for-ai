@@ -7,6 +7,7 @@ const {
   title = 'Progressives for AI',
   description = 'A weekly newsletter helping progressives understand AI, shape its development, and harness it for progressive change. No hype, no doom.',
   ogImage = 'https://progressivesforai.com/progressives-for-ai-sharing.png',
+  noindex = false,
 } = Astro.props;
 const ogDescription = "Technology doesn't have to be a tool of the powerful. Join us to understand AI, shape its development, and harness it for progressive change.";
 ---
@@ -31,6 +32,7 @@ const ogDescription = "Technology doesn't have to be a tool of the powerful. Joi
     <meta property="og:url" content="https://progressivesforai.com">
     <meta property="og:type" content="website">
     <meta name="description" content={description}>
+    {noindex && <meta name="robots" content="noindex">}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content={title}>
     <meta name="twitter:description" content={description}>

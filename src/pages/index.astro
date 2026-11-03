@@ -1,6 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import NewsletterSignup from '../components/NewsletterSignup.astro';
+import CheckCard from '../components/CheckCard.astro';
+import { getChecks, tallyText } from '../lib/checks';
+
+const checks = await getChecks();
 ---
 
 <Base>
@@ -13,6 +17,21 @@ import NewsletterSignup from '../components/NewsletterSignup.astro';
             <p class="form-note">Free updates on AI from a progressive perspective. No spam, unsubscribe anytime.</p>
         </div>
     </section>
+
+    {checks.length > 0 && (
+        <section class="latest-checks">
+            <div class="container">
+                <div class="latest-checks-head">
+                    <h2>Latest headline checks</h2>
+                    <p class="tally">{tallyText(checks)}</p>
+                    <a href="/checks/">See all</a>
+                </div>
+                <div class="check-strip">
+                    {checks.slice(0, 3).map((check) => <CheckCard check={check} />)}
+                </div>
+            </div>
+        </section>
+    )}
 
     <section class="why-matters">
         <div class="container">

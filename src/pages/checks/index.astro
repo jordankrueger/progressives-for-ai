@@ -1,0 +1,87 @@
+---
+import Base from '../../layouts/Base.astro';
+import CheckCard from '../../components/CheckCard.astro';
+import { VERDICTS } from '../../lib/check-scale.mjs';
+import { getChecks, tallyText } from '../../lib/checks';
+
+const checks = await getChecks();
+const topics = [...new Set(checks.map((c) => c.data.topic))].sort();
+const verdictsUsed = VERDICTS.filter((v) => checks.some((c) => c.data.verdict === v.id));
+---
+
+<Base
+  title="Headline Checks | Progressives for AI"
+  description="Viral AI headlines, checked against the evidence. We rate the headline as written, say when it holds up, and fix mistakes in the open."
+>
+  <main class="rc-hub checks-hub">
+    <div class="container">
+      <div class="crumb"><a href="/reality-check/">Reality Check</a> / Headline Checks</div>
+      <p class="kicker">No hype, no doom.</p>
+      <h1>Headline Checks</h1>
+      <p class="dek">AI headlines, checked. We take the viral headline as written, read what it's based on, and tell you how well it holds up, including when it does.</p>
+      <div class="checks-actions">
+        <a class="button-primary" href="/checks/send-a-headline/">Send us a headline</a>
+        <a href="/checks/how-we-check/">How we check</a>
+        <a href="/checks/rss.xml">RSS</a>
+      </div>
+
+      {checks.length === 0 ? (
+        <div class="empty-state">
+          <h2>No headline checks published yet</h2>
+          <p>Seen an AI headline you want checked? <a href="/checks/send-a-headline/">Send it to us</a>.</p>
+        </div>
+      ) : (
+        <>
+          <p class="tally">{tallyText(checks)}</p>
+          <form class="check-filters" hidden role="search" onsubmit="return false">
+            <label>Verdict
+              <select name="verdict">
+                <option value="">All verdicts</option>
+                {verdictsUsed.map((v) => <option value={v.id}>{v.label}</option>)}
+              </select>
+            </label>
+            <label>Topic
+              <select name="topic">
+                <option value="">All topics</option>
+                {topics.map((t) => <option value={t}>{t}</option>)}
+              </select>
+            </label>
+            <label class="grow">Search
+              <input type="search" name="q" placeholder="Search headlines and outlets" />
+            </label>
+          </form>
+          <div class="check-list">
+            {checks.map((check) => <CheckCard check={check} />)}
+          </div>
+          <p class="no-match" hidden>No checks match those filters.</p>
+        </>
+      )}
+    </div>
+  </main>
+</Base>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('.check-filters');
+  if (form) {
+    form.hidden = false;
+    const cards = [...document.querySelectorAll<HTMLElement>('.check-list .check-card')];
+    const noMatch = document.querySelector<HTMLElement>('.no-match')!;
+    const apply = () => {
+      const verdict = (form.elements.namedItem('verdict') as HTMLSelectElement).value;
+      const topic = (form.elements.namedItem('topic') as HTMLSelectElement).value;
+      const q = (form.elements.namedItem('q') as HTMLInputElement).value.trim().toLowerCase();
+      let shown = 0;
+      for (const card of cards) {
+        const ok =
+          (!verdict || card.dataset.verdict === verdict) &&
+          (!topic || card.dataset.topic === topic) &&
+          (!q || (card.dataset.search ?? '').includes(q));
+        card.hidden = !ok;
+        if (ok) shown++;
+      }
+      noMatch.hidden = shown > 0;
+    };
+    form.addEventListener('input', apply);
+    form.addEventListener('change', apply);
+  }
+</script>

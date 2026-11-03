@@ -1,8 +1,11 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import CheckCard from '../../components/CheckCard.astro';
+import { getChecks, tallyText } from '../../lib/checks';
 
-const entries = await getCollection('reality-check', ({ data }) => data.draft !== true);
+const entries = await getCollection('reality-check', ({ data }) => data.draft !== true && data.category !== 'headline');
+const checks = await getChecks();
 const labels = {
   myth: 'Myths',
   guide: 'Guides',
@@ -23,6 +26,10 @@ const grouped = {
     <div class="container">
       <h1>Reality Check</h1>
       <p class="dek">Evidence-forward pages built to separate real AI concerns from bad statistics and easy panic.</p>
+
+      <div class="rc-columns">
+      <div class="rc-col">
+      <h2 class="col-title">Topics</h2>
 
       {entries.length === 0 ? (
         <div class="empty-state">
@@ -47,6 +54,23 @@ const grouped = {
           )
         ))
       )}
+      </div>
+
+      <aside class="rc-col">
+        <h2 class="col-title"><a href="/checks/">Headline checks</a></h2>
+        <p class="col-dek">{checks.length > 0 ? `AI headlines, checked. ${tallyText(checks)}.` : 'AI headlines, checked.'}</p>
+        {checks.length === 0 ? (
+          <div class="empty-state">
+            <p>No headline checks published yet. <a href="/checks/send-a-headline/">Send us a headline</a> you want checked.</p>
+          </div>
+        ) : (
+          <div class="check-list">
+            {checks.slice(0, 5).map((check) => <CheckCard check={check} compact />)}
+            <a class="see-all" href="/checks/">See all headline checks</a>
+          </div>
+        )}
+      </aside>
+      </div>
     </div>
   </main>
 </Base>

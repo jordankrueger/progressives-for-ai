@@ -1,0 +1,37 @@
+# Copied to .github/workflows/validate-data.yml on the headline-data branch by
+# `npm run checks:init-data-branch`. Free: no model calls, no secrets.
+name: Validate headline data
+
+on:
+  push:
+    branches: [headline-data]
+    paths: ['sightings/**', 'shortlists/**']
+  pull_request:
+    branches: [headline-data]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the data
+        uses: actions/checkout@v5
+        with:
+          path: data
+      - name: Check out the validator from main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          path: site
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: site/.nvmrc
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: site
+      - run: node scripts/checks/validate.mjs ../data
+        working-directory: site

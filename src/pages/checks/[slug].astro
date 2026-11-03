@@ -1,0 +1,17 @@
+---
+import { render } from 'astro:content';
+import HeadlineCheck from '../../layouts/HeadlineCheck.astro';
+import { getChecks, checkSlug } from '../../lib/checks';
+
+export async function getStaticPaths() {
+  const checks = await getChecks();
+  return checks.map((entry) => ({ params: { slug: checkSlug(entry) }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<HeadlineCheck entry={entry}>
+  <Content />
+</HeadlineCheck>

@@ -1,0 +1,29 @@
+---
+import VerdictBadge from './VerdictBadge.astro';
+import { checkPath, formatDate, type Check } from '../lib/checks';
+
+interface Props {
+  check: Check;
+  compact?: boolean;
+}
+
+const { check, compact = false } = Astro.props;
+const d = check.data;
+const search = [d.headline, d.outlet, d.bottomLine, d.topic].join(' ').toLowerCase();
+---
+
+<a
+  href={checkPath(check)}
+  class:list={['check-card', { compact }]}
+  data-verdict={d.verdict}
+  data-topic={d.topic}
+  data-search={search}
+>
+  <span class="check-card-top">
+    <VerdictBadge verdict={d.verdict!} />
+    {check.data.draft && <span class="sample-tag">Sample</span>}
+  </span>
+  <span class="check-card-headline">“{d.headline}”</span>
+  <span class="check-card-meta">{d.outlet} · {formatDate(d.publishedDate!)}</span>
+  {!compact && <span class="check-card-bottom">{d.bottomLine}</span>}
+</a>

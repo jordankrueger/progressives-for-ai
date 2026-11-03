@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import { CHECKS_EMAIL } from '../../lib/checks';
+
+const body = `Headline (as written):\n\nLink:\n\nWhere you saw it (site, subreddit, group chat):\n\nWhy it caught your eye:\n`;
+const href = `mailto:${CHECKS_EMAIL}?subject=${encodeURIComponent('Headline to check')}&body=${encodeURIComponent(body)}`;
+---
+
+<Base
+  title="Send us a headline | Headline Checks | Progressives for AI"
+  description="Seen a viral AI headline you want checked? Send it to Progressives for AI."
+>
+  <main class="rc-page">
+    <article class="rc-article">
+      <div class="pad">
+        <div class="crumb"><a href="/reality-check/">Reality Check</a> / <a href="/checks/">Headline Checks</a> / Send a headline</div>
+        <h1>Send us a headline</h1>
+        <p class="dek">Seen an AI headline that everyone is sharing? Send it our way. The ones spreading fastest get checked first.</p>
+        <p><a class="button-primary" href={href}>Email us the headline</a></p>
+        <p>Or write to <a href={`mailto:${CHECKS_EMAIL}`}>{CHECKS_EMAIL}</a> with:</p>
+        <ul class="rules">
+          <li>the headline, exactly as written</li>
+          <li>a link to the story</li>
+          <li>where you saw it being shared</li>
+        </ul>
+        <p>We check headlines on their merits, whichever way the evidence points. Read <a href="/checks/how-we-check/">how we check</a>.</p>
+      </div>
+    </article>
+  </main>
+</Base>

@@ -5,14 +5,26 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "checks:validate": "node scripts/checks/validate.mjs",
+    "checks:verify": "node scripts/checks/verify.mjs",
+    "checks:init-data-branch": "node scripts/checks/init-data-branch.mjs",
+    "checks:fingerprint": "node scripts/checks/fingerprint.mjs",
+    "checks:chatgpt": "node scripts/checks/source-check-chatgpt.mjs",
+    "checks:recheck": "node scripts/checks/recheck-sources.mjs",
+    "test:checks": "node --test 'tests/checks/*.test.mjs'"
   },
   "dependencies": {
-    "astro": "^6.4.6",
     "@astrojs/mdx": "^6.0.3",
-    "@astrojs/sitemap": "^3.7.3"
+    "@astrojs/sitemap": "^3.7.3",
+    "astro": "^6.4.6",
+    "js-yaml": "4.2.0",
+    "satori": "0.63.2",
+    "sharp": "0.34.5"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.0"
+    "@playwright/test": "^1.48.0",
+    "parse5": "7.3.0",
+    "unpdf": "1.9.1"
   }
 }
