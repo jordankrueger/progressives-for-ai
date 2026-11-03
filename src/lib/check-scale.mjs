@@ -51,7 +51,7 @@ const day = (inner) => z.preprocess((v) => (v instanceof Date ? v.toISOString().
 
 // --- Sources: each check's sources live in its frontmatter (`sources:`), original first.
 // Every source is checked twice before publishing (Claude Haiku in the research routine,
-// ChatGPT in the source-check-chatgpt workflow) and re-checked monthly through Jev.
+// ChatGPT in the source-check-chatgpt workflow on check/** pushes) and re-checked monthly through Jev.
 export const MODEL_RESULTS = [
   { id: 'supports', label: 'Supports' },
   { id: 'partly', label: 'Partly supports' },

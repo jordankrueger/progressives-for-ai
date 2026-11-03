@@ -1,71 +1,110 @@
 # ChatGPT half of the two-model source check (the Claude Haiku half runs in the research
-# routine; see docs/headline-checks/tasks/research.md). On a pull request that touches a
-# check, sends each new or edited source to a small OpenAI model, commits the results to
-# the check's verification.chatgpt blocks and comments a summary on the PR.
+# routine; see docs/headline-checks/tasks/research.md).
 #
-# OFF by default: runs only when the repo variable SOURCE_CHECK_CHATGPT is "on".
-# Billed to the OPENAI_API_KEY repo secret. Caps: 12 sources per run, about 3,000 input
-# and 300 output tokens per source (cost estimate in docs/headline-checks/PIPELINE.md).
-# Same-repo branches only: forks get no secrets and can't be pushed to.
-# The results commit is pushed with GITHUB_TOKEN, which does not start new workflow runs,
-# so it does not loop or re-trigger the paid AI code review.
+# - Push to a check/** branch (before any PR exists): sends each new or edited source to a
+#   small OpenAI model and commits the results to the check's verification.chatgpt blocks.
+#   The research routine waits for that commit, pulls it, then opens the PR.
+# - Pull request: verify only. No API call, no commit. Fails if any changed check has a
+#   source without a ChatGPT result for its current url, quote and claim.
+#
+# It never commits onto a branch with an open PR: a bot commit there starts new PR runs
+# (held as "action required") and, once approved, another paid AI code review.
+#
+# OFF by default: both jobs run only when the repo variable SOURCE_CHECK_CHATGPT is "on".
+# Billed to the OPENAI_API_KEY repo secret (push job only). Caps: 12 sources per run, about
+# 3,000 input and 300 output tokens per source (cost estimate in docs/headline-checks/PIPELINE.md).
 name: Source check (ChatGPT)
 
 on:
+  push:
+    branches:
+      - 'check/**'
+    paths:
+      - 'src/content/reality-check/checks/**'
   pull_request:
     paths:
       - 'src/content/reality-check/checks/**'
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
-  group: source-check-chatgpt-${{ github.event.pull_request.number }}
+  group: source-check-chatgpt-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 jobs:
   check:
-    if: vars.SOURCE_CHECK_CHATGPT == 'on' && github.event.pull_request.head.repo.full_name == github.repository
+    # The bot's own results commit must not start another round.
+    if: github.event_name == 'push' && vars.SOURCE_CHECK_CHATGPT == 'on' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+      - name: Skip if this branch already has an open PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          n=$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')
+          if [ "$n" != "0" ]; then
+            echo "::notice::$BRANCH has an open PR, so no ChatGPT run and no commit. See PIPELINE.md, 'Source checks', to re-run after a source change."
+            echo "open=yes" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v5
+        if: steps.pr.outputs.open != 'yes'
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci --no-audit --no-fund
+      - if: steps.pr.outputs.open != 'yes'
+        run: npm ci --no-audit --no-fund
       - name: Ask ChatGPT about each new or edited source
         id: files
+        if: steps.pr.outputs.open != 'yes'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
+          base=$(git merge-base origin/main HEAD)
           # NUL-delimited into an array, so any file name stays one argument.
-          mapfile -d '' files < <(git diff -z --name-only --diff-filter=AM "$BASE_SHA"...HEAD -- 'src/content/reality-check/checks/*.mdx')
-          if [ "${#files[@]}" -eq 0 ]; then echo "No changed checks."; echo "files=" >> "$GITHUB_OUTPUT"; exit 0; fi
+          mapfile -d '' files < <(git diff -z --name-only --diff-filter=AM "$base" HEAD -- 'src/content/reality-check/checks/*.mdx')
+          if [ "${#files[@]}" -eq 0 ]; then echo "No changed checks."; exit 0; fi
           echo "files=yes" >> "$GITHUB_OUTPUT"
-          node scripts/checks/source-check-chatgpt.mjs --write --comment "$RUNNER_TEMP/comment.md" -- "${files[@]}"
-      - name: Commit results to the PR branch
-        if: steps.files.outputs.files != ''
+          node scripts/checks/source-check-chatgpt.mjs --write --comment "$RUNNER_TEMP/summary.md" -- "${files[@]}"
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit results to the branch
+        if: steps.files.outputs.files == 'yes'
         env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BRANCH: ${{ github.ref_name }}
         run: |
           if git diff --quiet -- src/content/reality-check/checks; then echo "No new results to commit."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/content/reality-check/checks
           git commit -m "Source check: ChatGPT results"
-          git push origin "HEAD:refs/heads/$HEAD_REF"
-      - name: Comment on the PR
-        if: steps.files.outputs.files != ''
+          git push origin "HEAD:refs/heads/$BRANCH"
+
+  verify:
+    if: github.event_name == 'pull_request' && vars.SOURCE_CHECK_CHATGPT == 'on'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Every changed check has current ChatGPT results
         env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md" --edit-last 2>/dev/null \
-            || gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md"
+          mapfile -d '' files < <(git diff -z --name-only --diff-filter=AM "$BASE_SHA"...HEAD -- 'src/content/reality-check/checks/*.mdx')
+          if [ "${#files[@]}" -eq 0 ]; then echo "No changed checks."; exit 0; fi
+          node scripts/checks/source-check-chatgpt.mjs --verify-only -- "${files[@]}"

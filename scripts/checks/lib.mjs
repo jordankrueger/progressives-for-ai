@@ -1,5 +1,6 @@
 // Checks shared by checks:validate and checks:verify. No model calls, no secrets.
 import yaml from 'js-yaml';
+import { parse, parseFragment } from 'parse5';
 import {
   REQUIRED_SECTIONS,
   realityCheckSchema,
@@ -13,8 +14,15 @@ export function parseMdx(text) {
 }
 
 // Body with MDX/HTML comments and code fences removed, so commented-out content doesn't count.
-export const renderedBody = (body) =>
-  body.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/```[\s\S]*?```/g, '');
+// Repeats until nothing changes, so a comment rebuilt by an earlier removal can't survive.
+export function renderedBody(body) {
+  let out = body;
+  for (let prev; prev !== out; ) {
+    prev = out;
+    out = out.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/```[\s\S]*?```/g, '');
+  }
+  return out;
+}
 
 const zodErrors = (error) => error.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`);
 
@@ -24,7 +32,7 @@ export function sectionTitles(body) {
   const re = /<h2[^>]*>([\s\S]*?)<\/h2>|^##\s+(.+)$/gm;
   for (const m of body.matchAll(re)) {
     const raw = m[1] ?? m[2];
-    titles.push(raw.replace(/<span class="num">[\s\S]*?<\/span>/g, '').replace(/<[^>]+>/g, '').replace(/&#39;|&rsquo;|’/g, "'").trim());
+    titles.push(nodeText(parseFragment(raw), { skipNum: true }).replace(/’/g, "'").replace(/\s+/g, ' ').trim());
   }
   return titles;
 }
@@ -117,8 +125,22 @@ export async function checkLinks(urls, { fetchImpl = fetch, timeoutMs = 15000 } 
   return { errors, warnings, texts };
 }
 
-export const htmlToText = (html) =>
-  html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
+// Text a reader sees, from a real HTML parser (parse5): entities decoded, script/style/template
+// contents dropped, block boundaries turned into spaces. Regex tag-stripping misses odd markup.
+const SKIP = new Set(['script', 'style', 'noscript', 'template', 'head']);
+function nodeText(node, { skipNum = false } = {}) {
+  const parts = [];
+  const walk = (n) => {
+    if (n.nodeName === '#text') return parts.push(n.value);
+    if (SKIP.has(n.nodeName)) return;
+    if (skipNum && n.nodeName === 'span' && n.attrs?.some((a) => a.name === 'class' && a.value.split(/\s+/).includes('num'))) return;
+    for (const c of n.content?.childNodes ?? n.childNodes ?? []) walk(c);
+    if (!skipNum) parts.push(' ');
+  };
+  walk(node);
+  return parts.join('');
+}
+export const htmlToText = (html) => nodeText(parse(html)).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ');
 
 // Numbers in a stat's big value, e.g. "519 ml" -> ["519"], "under 0.2%" -> ["0.2"].
 export const statNumbers = (big) => (big.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((n) => n.replace(/,/g, ''));

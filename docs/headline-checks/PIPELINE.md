@@ -33,11 +33,12 @@ The research routine is told to edit only the new `.mdx` file and to push once, 
 expected cost is one OpenAI review per research PR, at most two research PRs a week.
 
 Two more paid workflows exist for sources, both **off** until a repo variable turns them on
-(see "Source checks" below): the ChatGPT source check on check PRs (about 2 to 5 cents per
-check) and the monthly Jev re-check (a few cents a month, plus one OpenAI review when its
+(see "Source checks" below): the ChatGPT source check on `check/*` branch pushes (about 2 to 5
+cents per check) and the monthly Jev re-check (a few cents a month, plus one OpenAI review when its
 date branch is merged).
 
-What costs nothing: pushes to `headline-data` or to `check/*` branches with no PR open, the
+What costs nothing: pushes to `headline-data`, pushes to `check/*` branches with no PR open
+(apart from the ChatGPT source check's few cents), the
 `headline-checks.yml` and `validate-data.yml` workflows (free on a public repo), and the
 Cloudflare Pages preview build every branch push gets.
 
@@ -56,7 +57,8 @@ None of them is scheduled yet.
    Opens one issue "Headline candidates, week of ..." and writes `shortlists/YYYY-Www.md`.
 3. **Research.** `tasks/research.md`, Tuesdays and Thursdays or Run now, Sonnet (Opus only on
    close calls). Takes one `research` issue, writes a check with `draft: true` on branch
-   `check/<slug>`, runs `checks:verify`, opens a draft PR.
+   `check/<slug>`, pushes it, waits for the ChatGPT source check to commit its results, pulls
+   them, runs `checks:verify`, then opens a draft PR.
 4. **Publish.** Jordan reviews the draft PR and its preview, flips `draft: false`, merges.
 
 Jordan picks what gets researched by clicking a one-click "open research issue" link in the
@@ -116,14 +118,29 @@ page on their own:
 
 1. **Claude Haiku**, in the research routine (`tasks/research.md` step 6): one Haiku subagent
    per source fetches the page and writes `verification.haiku`. Runs on Jordan's Claude plan.
-2. **ChatGPT**, in `.github/workflows/source-check-chatgpt.yml` on the check's PR (Jordan's
-   ChatGPT subscription can't be called from automation, so this uses the `OPENAI_API_KEY`
-   repo secret). Code fetches each page and sends the part around the quote (12,000 characters,
-   about 3,000 tokens) to `gpt-5.4-mini` with a 300-token answer cap and at most 12 sources per
-   run. It commits `verification.chatgpt` to the PR branch and comments a summary. Only new or
+2. **ChatGPT**, in `.github/workflows/source-check-chatgpt.yml` (Jordan's ChatGPT subscription
+   can't be called from automation, so this uses the `OPENAI_API_KEY` repo secret). It runs on
+   **pushes to `check/**` branches, before a PR exists**. Code fetches each page and sends the
+   part around the quote (12,000 characters, about 3,000 tokens) to `gpt-5.4-mini` with a
+   300-token answer cap and at most 12 sources per run. It commits `verification.chatgpt` to the
+   branch ("Source check: ChatGPT results") and writes a summary to the run page. Only new or
    edited sources are sent. PDFs are read too (text extracted in code); scanned PDFs with no
    text and paywalled pages are reported "check by hand".
    **Off unless the repo variable `SOURCE_CHECK_CHATGPT` is `on`.**
+
+   **It never commits onto a branch with an open PR.** A bot commit on an open PR starts new
+   runs that GitHub holds as "action required" and, once approved, another paid AI code review
+   (this happened on PR #32). So the push job skips any branch that already has an open PR, and
+   ignores its own results commit. On a pull request the workflow only verifies: every changed
+   check must have a ChatGPT result for each source's current url, quote and claim
+   (`npm run checks:chatgpt -- <file> --verify-only`). No API call, no commit.
+
+   To re-check a source after the PR is open (you changed its url, quote or claim): close the
+   PR, push the branch, wait for the results commit, then reopen the PR. Reopening starts one
+   paid review, the same as any push to an open PR.
+
+   The writer edits only the `verification` lines that changed, one line each, so the rest of
+   the frontmatter keeps its quoting and comments.
 
 Each result stores a fingerprint (`for`) of the url, quote and claim it checked; editing any of
 them makes the result stale. The ChatGPT workflow stamps its own; the research routine stamps

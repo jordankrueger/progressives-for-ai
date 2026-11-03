@@ -2,13 +2,13 @@
 // ChatGPT check. No network: every fetch (pages, Jev, OpenAI) is a mock.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cpSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkStructure } from '../../scripts/checks/lib.mjs';
+import { checkStructure, htmlToText, renderedBody, sectionTitles } from '../../scripts/checks/lib.mjs';
 import { askJev, JEV_ENDPOINT } from '../../scripts/checks/jev.mjs';
 import { assess, run as recheck } from '../../scripts/checks/recheck-sources.mjs';
-import { run as chatgpt } from '../../scripts/checks/source-check-chatgpt.mjs';
+import { run as chatgpt, verifyOnly } from '../../scripts/checks/source-check-chatgpt.mjs';
 import { bestExcerpt, fetchSource, pdfText, PDF_LIMITS, quoteFound, readCheck, replaceSources } from '../../scripts/checks/sources.mjs';
 import { stamp } from '../../scripts/checks/fingerprint.mjs';
 import { sourceFingerprint, sourceIssues } from '../../src/lib/check-scale.mjs';
@@ -299,7 +299,7 @@ test('ChatGPT check: a transport error never carries the key into the message', 
   const key = 'sk-test-\nSECRETVALUE';
   const dir = tempChecks();
   const fetchImpl = async (url, init) => {
-    if (url.startsWith('https://api.openai.com')) throw new TypeError(`Invalid header value: Bearer ${init.headers.authorization}`);
+    if (new URL(url).hostname === 'api.openai.com') throw new TypeError(`Invalid header value: Bearer ${init.headers.authorization}`);
     return page(200, 'about 519 milliliters per email');
   };
   await assert.rejects(
@@ -329,7 +329,7 @@ test('ChatGPT check reads PDF text too', async () => {
   const dir = tempChecks();
   const inputs = [];
   const fetchImpl = async (url, init) => {
-    if (url.startsWith('https://api.openai.com')) {
+    if (new URL(url).hostname === 'api.openai.com') {
       inputs.push(JSON.parse(init.body).input);
       return json(200, { output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ result: 'supports', quoteFound: true, note: 'n' }) }] }], usage: {} });
     }
@@ -381,4 +381,64 @@ test('PDF reading has a deadline: a slow file is cut off, not waited on', async 
   const bytes = readFileSync('tests/checks/fixtures/pdf/text.pdf');
   await assert.rejects(pdfText(bytes, { ...PDF_LIMITS, timeoutMs: 1 }), /took too long/);
   assert.ok((await pdfText(bytes)).includes('531 billion'));
+});
+
+test('replaceSources edits only the verification lines that changed, keeping quotes and comments', () => {
+  const withComment = sample.replace('    verification:\n      sample: true', '    verification: # filled by the checks\n      sample: true');
+  const { sources } = readCheck(withComment);
+  sources[2].verification.chatgpt = { date: '2026-12-01', result: 'partly', note: 'He said "maybe": 0.2%', for: sourceFingerprint(sources[2]) };
+  delete sources[3].verification.recheck;
+  sources[0].verification.recheck = { date: '2026-12-02', status: 'ok', jevConfidence: 0.9, httpStatus: 200 };
+  const out = replaceSources(withComment, sources);
+  assert.deepEqual(readCheck(out).sources, sources);
+  const changed = (a, b) => { const x = a.split('\n'), y = b.split('\n'); return y.filter((l) => !x.includes(l)).concat(x.filter((l) => !y.includes(l))); };
+  // Three edits: one chatgpt line replaced (2 lines differ), one recheck line replaced, one recheck line removed.
+  assert.equal(changed(withComment, out).length, 5, changed(withComment, out).join('\n'));
+  assert.ok(out.includes('    verification: # filled by the checks'), 'comment on the verification line was lost');
+  assert.ok(out.includes('  - url: "https://arxiv.org/abs/2304.03271"'), 'quoting of untouched fields changed');
+});
+
+test('replaceSources adds a verification block to a source that has none', () => {
+  const bare = sample.replace(/(quote: "the equally important[^\n]*\n)    verification:\n(?: {6}.*\n)+/, '$1');
+  const { sources } = readCheck(bare);
+  assert.deepEqual(sources[0].verification, {});
+  sources[0].verification = { chatgpt: { date: '2026-12-01', result: 'supports', note: 'n', for: sourceFingerprint(sources[0]) } };
+  const out = replaceSources(bare, sources);
+  assert.deepEqual(readCheck(out).sources, sources);
+  assert.match(out, /\n    verification:\n      chatgpt: \{ date: "2026-12-01"/);
+});
+
+test('htmlToText uses a real parser: odd script tags, entities, comments', () => {
+  const text = htmlToText('<head><title>T</title></head><body><p>a&nbsp;b &amp; c&rsquo;s</p><script >x()</script\t\n bar><style>p{}</style ><!-- <p>hidden</p> --><div>d</div></body>');
+  assert.equal(text.trim(), 'a b & c\u2019s d');
+  assert.deepEqual(sectionTitles('<h2 id="x"><span class="num">02</span>What&#39;s <em>true</em></h2>\n## Plain one'), ["What's true", 'Plain one']);
+  assert.equal(renderedBody('a<!-<!-- x -->- y -->b'), 'ab'); // a comment rebuilt by removing another is removed too
+});
+
+test('ChatGPT --verify-only: passes with current results, fails on missing or stale ones, never calls out', async () => {
+  const dir = tempChecks();
+  const file = join(dir, 'published.mdx');
+  let calls = 0;
+  const fetchImpl = async (url, init) => {
+    calls++;
+    if (new URL(url).hostname === 'api.openai.com') return json(200, { output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ result: 'supports', quoteFound: true, note: 'n' }) }] }], usage: {} });
+    if (url.endsWith('.pdf')) return pdfRes('text.pdf');
+    return page(200, 'about 519 milliliters per email');
+  };
+  const before = await chatgpt({ args: [file, '--verify-only'], env: {}, fetchImpl, log: quiet });
+  assert.equal(before.missing.length, 4); // fixture results carry no fingerprint
+  assert.equal(calls, 0);
+  await chatgpt({ args: [file, '--write', '--today', '2026-11-03'], env: { OPENAI_API_KEY: 'k' }, fetchImpl, log: quiet });
+  assert.deepEqual((await verifyOnly([file], quiet)).missing, []);
+  writeFileSync(file, readFileSync(file, 'utf8').replace('quote: "about 519 milliliters per email"', 'quote: "about 519 ml per email"'));
+  const stale = await verifyOnly([file], quiet);
+  assert.equal(stale.missing.length, 1);
+  assert.match(stale.missing[0], /source 1: ChatGPT result is stale/);
+  rmSync(dir, { recursive: true });
+});
+
+test('replaceSources falls back to a full rewrite when a non-verification field changed', () => {
+  const { sources } = readCheck(sample);
+  sources[1].title = 'A new title';
+  assert.deepEqual(readCheck(replaceSources(sample, sources)).sources, sources);
 });

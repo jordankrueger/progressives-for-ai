@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 // npm run checks:chatgpt -- <check.mdx ...> [--write] [--dry-run] [--comment <file>] [--max-sources N]
+// npm run checks:chatgpt -- <check.mdx ...> --verify-only
 // The ChatGPT half of the two-model source check (the Claude Haiku half runs in the research
-// routine). Run by source-check-chatgpt.yml on pull requests that touch checks.
+// routine). source-check-chatgpt.yml runs it with --write on pushes to check/** branches
+// (before a PR exists) and with --verify-only on pull requests: no API call, no commit, just
+// "does every source have a ChatGPT result for its current url, quote and claim?".
 // Code fetches each source page; a small OpenAI model reads the part around the quote and
 // says whether the page contains the quote and supports the claim. Writes each source's
 // verification.chatgpt block (--write) and a markdown summary for the PR comment.
@@ -72,6 +75,24 @@ export async function askOpenAI(input, { key = process.env.OPENAI_API_KEY, fetch
   return { answer: JSON.parse(text), usage: body.usage ?? {} };
 }
 
+// Every source must already carry a ChatGPT result stamped for its current url, quote and claim.
+export async function verifyOnly(files, log = console.log) {
+  const missing = [];
+  for (const file of files) {
+    const { sources } = await loadCheck(file);
+    sources.forEach((s, i) => {
+      if (!s.verification?.chatgpt) missing.push(`${file} source ${i + 1}: no ChatGPT result`);
+      else if (needsCheck(s)) missing.push(`${file} source ${i + 1}: ChatGPT result is stale (url, quote or claim changed since)`);
+    });
+  }
+  if (missing.length) {
+    log(['ChatGPT source check missing or out of date:', ...missing.map((m) => `- ${m}`), '', 'The check runs on pushes to the check/<slug> branch before a PR is opened. See docs/headline-checks/PIPELINE.md, "Source checks".'].join('\n'));
+  } else {
+    log(`Every source in ${files.length} check(s) has a current ChatGPT result.`);
+  }
+  return { missing };
+}
+
 const needsCheck = (s) => !s.verification?.chatgpt || s.verification.chatgpt.for !== sourceFingerprint(s);
 const ICON = { supports: '✅', partly: '🟡', 'doesnt-support': '❌' };
 
@@ -79,6 +100,7 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
   const opt = (name) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);
   const valued = new Set(['--comment', '--max-sources', '--fixtures', '--today']);
   const files = args.filter((a, i) => !a.startsWith('--') && !valued.has(args[i - 1]));
+  if (args.includes('--verify-only')) return verifyOnly(files, log);
   const dryRun = args.includes('--dry-run');
   const write = args.includes('--write') && !dryRun;
   const max = Number(opt('--max-sources') ?? MAX_SOURCES);
@@ -130,7 +152,7 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
   const out = ['### ChatGPT source check', ''];
   if (!rows.length) out.push('Every source already has a current ChatGPT result. Nothing sent.');
   for (const r of rows) out.push(`- \`${r.file.split('/').pop()}\` source ${r.n}, [${r.s.title.replace(/[[\]]/g, '')}](${r.s.url}): ${r.line}`);
-  if (skippedForCap) out.push('', `${skippedForCap} more source(s) not checked: over the ${max}-source cap for one run. Push again or run the workflow again to continue.`);
+  if (skippedForCap) out.push('', `${skippedForCap} more source(s) not checked: over the ${max}-source cap for one run. Push the branch again to continue.`);
   if (rows.some((r) => r.line.includes('doesnt-support'))) out.push('', "A source marked doesn't-support blocks publishing until it is replaced or the claim is fixed.");
   out.push('', `${sent} source(s) sent to \`${MODEL}\`: ${usage.input} input + ${usage.output} output tokens, about $${cost.toFixed(4)}.`);
   const comment = `${out.join('\n')}\n`;
@@ -140,7 +162,7 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  run().catch((e) => {
+  run().then((r) => { if (r?.missing?.length) process.exitCode = 1; }).catch((e) => {
     console.error(e.message);
     process.exit(1);
   });

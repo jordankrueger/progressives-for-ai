@@ -3,6 +3,7 @@
 import yaml from 'js-yaml';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { sourceSchema } from '../../src/lib/check-scale.mjs';
 import { htmlToText, parseMdx } from './lib.mjs';
 
@@ -25,13 +26,23 @@ export const loadCheck = async (file) => {
   return { file, text, ...readCheck(text) };
 };
 
-// Replace only the top-level `sources:` block of the frontmatter, leaving every other line
-// exactly as written (a full YAML round-trip would rewrite dates and quoting everywhere).
+// Write updated sources back into a check. The writers (ChatGPT check, monthly re-check) only
+// ever change `verification`, so this edits just the verification entries that changed, one
+// flow-style line each (`chatgpt: { date: "...", ... }`), and leaves every other line, quote
+// style and comment exactly as written. If the file isn't in the template's layout, or the
+// result doesn't read back as `sources`, it falls back to re-dumping the whole block.
 export function replaceSources(text, sources) {
-  const end = text.indexOf('\n---', 4);
-  if (!text.startsWith('---\n') || end === -1) throw new Error('no frontmatter block');
-  const fm = text.slice(4, end + 1);
-  const lines = fm.split('\n');
+  try {
+    const out = editVerification(text, sources);
+    if (out && same(readCheck(out).sources, sources)) return out;
+  } catch {
+    // fall through to the whole-block rewrite
+  }
+  return dumpSources(text, sources);
+}
+
+// [startLine, stopLine) of the top-level sources block inside the frontmatter lines.
+function sourcesBlock(lines) {
   const start = lines.findIndex((l) => /^sources:\s*$/.test(l));
   if (start === -1) throw new Error('frontmatter has no "sources:" block');
   let stop = start + 1;
@@ -39,9 +50,83 @@ export function replaceSources(text, sources) {
   while (stop < lines.length && (lines[stop] === '' || /^[\s-]/.test(lines[stop]))) stop++;
   // Trailing blank lines belong to whatever follows.
   while (stop > start + 1 && lines[stop - 1] === '') stop--;
+  return [start, stop];
+}
+
+function splitFrontmatter(text) {
+  const end = text.indexOf('\n---', 4);
+  if (!text.startsWith('---\n') || end === -1) throw new Error('no frontmatter block');
+  return { lines: text.slice(4, end + 1).split('\n'), rest: text.slice(end + 1) };
+}
+
+// Equal as YAML would store them: undefined fields are simply absent.
+const plain = (v) => (v === undefined ? null : JSON.parse(JSON.stringify(v)));
+const same = (a, b) => isDeepStrictEqual(plain(a), plain(b));
+const indentOf = (l) => l.match(/^ */)[0].length;
+const flowValue = (v) => (v && typeof v === 'object' ? `{ ${Object.entries(v).filter(([, x]) => x !== undefined).map(([k, x]) => `${k}: ${JSON.stringify(x)}`).join(', ')} }` : JSON.stringify(v));
+
+function editVerification(text, sources) {
+  const { lines, rest } = splitFrontmatter(text);
+  const [start, stop] = sourcesBlock(lines);
+  const old = readCheck(text).sources;
+  if (old.length !== sources.length) return null;
+  // Source items: lines starting "<indent>- " at the first item's indent.
+  const first = lines.slice(start + 1, stop).find((l) => /^\s*- /.test(l));
+  if (!first) return null;
+  const itemIndent = indentOf(first);
+  const items = [];
+  for (let i = start + 1; i < stop; i++) if (indentOf(lines[i]) === itemIndent && lines[i].trimStart().startsWith('- ')) items.push(i);
+  if (items.length !== sources.length) return null;
+  const out = lines.slice();
+  // Work bottom-up so earlier line numbers stay valid.
+  for (let n = items.length - 1; n >= 0; n--) {
+    // Only verification is edited; any other change fails the read-back and takes the fallback.
+    const was = old[n].verification ?? {};
+    const now = sources[n].verification ?? {};
+    if (same(was, now)) continue;
+    const itemEnd = n + 1 < items.length ? items[n + 1] : stop;
+    let v = -1;
+    for (let i = items[n]; i < itemEnd; i++) if (/^\s*verification:\s*(#.*)?$/.test(out[i])) v = i;
+    const fieldIndent = itemIndent + 2;
+    const childIndent = ' '.repeat(fieldIndent + 2);
+    if (v === -1) {
+      let at = itemEnd;
+      while (at > items[n] + 1 && out[at - 1].trim() === '') at--;
+      out.splice(at, 0, `${' '.repeat(fieldIndent)}verification:`, ...Object.entries(now).filter(([, x]) => x !== undefined).map(([k, x]) => `${childIndent}${k}: ${flowValue(x)}`));
+      continue;
+    }
+    // Group the child lines into entries (a key line plus its deeper lines); comments stay put.
+    let end = v + 1;
+    while (end < itemEnd && (out[end].trim() === '' || indentOf(out[end]) > indentOf(out[v]))) end++;
+    while (end > v + 1 && out[end - 1].trim() === '') end--;
+    const kept = [];
+    const seen = new Set();
+    for (let i = v + 1; i < end; i++) {
+      const m = out[i].match(/^(\s*)([A-Za-z]+):/);
+      if (!m || out[i].trimStart().startsWith('#')) { kept.push(out[i]); continue; }
+      let j = i + 1;
+      while (j < end && indentOf(out[j]) > m[1].length) j++;
+      const key = m[2];
+      seen.add(key);
+      if (now[key] !== undefined) kept.push(...(same(was[key], now[key]) ? out.slice(i, j) : [`${m[1]}${key}: ${flowValue(now[key])}`]));
+      i = j - 1;
+    }
+    for (const [k, x] of Object.entries(now)) if (x !== undefined && !seen.has(k)) {
+      let at = kept.length;
+      while (at > 0 && kept[at - 1].trimStart().startsWith('#')) at--; // before trailing comments
+      kept.splice(at, 0, `${childIndent}${k}: ${flowValue(x)}`);
+    }
+    out.splice(v + 1, end - v - 1, ...kept);
+  }
+  return `---\n${out.join('\n')}${rest}`;
+}
+
+function dumpSources(text, sources) {
+  const { lines, rest } = splitFrontmatter(text);
+  const [start, stop] = sourcesBlock(lines);
   const block = yaml.dump({ sources }, { lineWidth: -1, noRefs: true, quotingType: '"' }).trimEnd();
   lines.splice(start, stop - start, ...block.split('\n'));
-  return `---\n${lines.join('\n')}${text.slice(end + 1)}`;
+  return `---\n${lines.join('\n')}${rest}`;
 }
 
 // Fold case, curly quotes, dashes and whitespace so a quote matches the page it came from.
