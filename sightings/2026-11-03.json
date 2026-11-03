@@ -1,1 +1,62 @@
-[]
+[
+  {
+    "headline": "Nearly 2 out of 3 teens and tweens use AI chatbots, new research shows",
+    "outlet": "OPB",
+    "url": "https://www.opb.org/article/2026/10/30/new-research-looks-at-teen-mental-health-and-ai-chatbot-use/",
+    "where": "OPB",
+    "dateSeen": "2026-11-03",
+    "claimId": "chatbot-teen-mental-health",
+    "claim": "Young people who use AI chatbots during emotional distress have worse mental health and more suicidal thoughts and attempts.",
+    "notes": "published 2026-10-30; syndicated from NPR (Rhitu Chatterjee); NPR page itself would not load. Finding is from a JED Foundation survey of 5,500 9-17 year olds, run by a mental health advocacy group (its own survey). Correlational; the article says cause is unclear. Also cites UNC studies on companionship use and loneliness."
+  },
+  {
+    "headline": "Nearly 2 out of 3 teens and tweens use AI chatbots, new research shows",
+    "outlet": "LPM",
+    "url": "https://www.lpm.org/news/2026-10-30/nearly-2-out-of-3-teens-and-tweens-use-ai-chatbots-new-research-shows",
+    "where": "LPM",
+    "dateSeen": "2026-11-03",
+    "claimId": "chatbot-teen-mental-health",
+    "claim": "Young people who use AI chatbots during emotional distress have worse mental health and more suicidal thoughts and attempts.",
+    "notes": "published 2026-11-01 per page text (URL slug says 2026-10-30); same NPR story. JED Foundation survey, advocacy group's own survey; correlational, article says cause is unclear."
+  },
+  {
+    "headline": "Texas sues OpenAI over ChatGPT's alleged harmful advice, child safety risks",
+    "outlet": "TopClassActions",
+    "url": "https://topclassactions.com/lawsuit-settlements/lawsuit-news/texas-sues-openai-over-chatgpts-alleged-harmful-advice-child-safety-risks/",
+    "where": "TopClassActions",
+    "dateSeen": "2026-11-03",
+    "claimId": "chatgpt-harms-children-lawsuit",
+    "claim": "ChatGPT has encouraged suicide, given mass shooters advice and become addictive to children.",
+    "notes": "published 2026-10-30; Texas filed the state-court suit 2026-10-23 against OpenAI and Sam Altman. These are the state's allegations, not findings. Found via a lawsuit news aggregator, not the state's own release."
+  },
+  {
+    "headline": "AI-driven layoffs are creating a new class of boomerang employees—companies are realizing they 'pulled the plug too quickly'",
+    "outlet": "CNBC",
+    "url": "https://www.cnbc.com/make-it/2026/10/30/ai-rebounding-employees.html",
+    "where": "CNBC",
+    "dateSeen": "2026-11-03",
+    "claimId": "ai-layoffs-rehiring-regret",
+    "claim": "Workers laid off because of AI are being asked back, which suggests the AI-driven layoffs were a mistake.",
+    "notes": "published 2026-10-30; based on an SHL survey (SHL is a talent assessment company, so an interested party) fielded by Propeller Insights June-July 2026, about 1,000 US and 1,000 UK workers. The 'pulled the plug too quickly' framing is the article's, not the survey's."
+  },
+  {
+    "headline": "Investors split on earnings season job cuts tied to AI, costs",
+    "outlet": "BusinessMirror",
+    "url": "https://businessmirror.com.ph/2026/11/03/investors-split-on-earnings-season-job-cuts-tied-to-ai-costs/",
+    "where": "BusinessMirror",
+    "dateSeen": "2026-11-03",
+    "claimId": "ai-blamed-job-cuts",
+    "claim": "Barclays is cutting 5,000 jobs and ties the cuts to AI.",
+    "notes": "published 2026-11-03; republished Bloomberg News story (Rose Henderson). The AI link is Barclays' own stated rationale, an interested party. Only Barclays is named as linking cuts to AI; Microsoft, Volvo, Schaeffler and OPmobility cuts are given other reasons. Not checked against Barclays' filing."
+  },
+  {
+    "headline": "Anthropic Faces New Suit, Says Training on Lyrics Is Fair Use",
+    "outlet": "Seoul Economic Daily",
+    "url": "https://en.sedaily.com/international/2026/10/23/anthropic-faces-new-suit-says-training-on-lyrics-is-fair-use",
+    "where": "Seoul Economic Daily",
+    "dateSeen": "2026-11-03",
+    "claimId": "ai-training-harms-creators",
+    "claim": "Training AI on copyrighted song lyrics harms songwriters and the music industry.",
+    "notes": "published 2026-10-23; music publishers including Universal Music Group filed the suit. Allegations by the plaintiffs, not findings. Anthropic argues the training is fair use."
+  }
+]
