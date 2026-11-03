@@ -90,20 +90,67 @@ export function bestExcerpt(text, query, maxChars) {
   return keep.map((c) => c.chunk).join(' … ');
 }
 
-export const MAX_PDF_BYTES = 30 * 1024 * 1024;
-const MIN_PDF_LETTERS = 200; // fewer than this: a scanned or image-only PDF, no text layer
+export const MAX_BYTES = 30 * 1024 * 1024; // any source body, web page or PDF
+export const PDF_LIMITS = { maxPages: 80, maxChars: 400000, timeoutMs: 30000, memoryMb: 256 };
+const MIN_REAL_WORDS = 6; // fewer real words than this: a scan with a stamped page number at most
 
-// Text of a PDF (unpdf, a devDependency). null when it has no text layer worth reading.
-export async function pdfText(bytes) {
-  const { extractText, getDocumentProxy } = await import('unpdf');
-  const pdf = await getDocumentProxy(new Uint8Array(bytes));
-  const { text } = await extractText(pdf, { mergePages: true });
-  const clean = text.replace(/\s+/g, ' ').trim();
-  return (clean.match(/\p{L}/gu) ?? []).length >= MIN_PDF_LETTERS ? clean : null;
+// Words of 3+ letters. A stamped "Page 1 of 12" has one; a real sentence has several.
+const realWords = (text) => text.match(/\p{L}{3,}/gu) ?? [];
+
+// Text of a PDF, read in a worker thread with a deadline, a memory cap and a page cap, so a
+// slow or hostile file can't stall the job. null when it has no real text layer (a scan).
+// Throws on a parse error or the deadline.
+export async function pdfText(bytes, limits = PDF_LIMITS) {
+  const { Worker } = await import('node:worker_threads');
+  const worker = new Worker(new URL('./pdf-worker.mjs', import.meta.url), {
+    workerData: { bytes, maxPages: limits.maxPages, maxChars: limits.maxChars },
+    resourceLimits: { maxOldGenerationSizeMb: limits.memoryMb },
+  });
+  let timer;
+  try {
+    const result = await Promise.race([
+      new Promise((resolve, reject) => {
+        worker.once('message', resolve);
+        worker.once('error', reject);
+        worker.once('exit', (code) => reject(new Error(`PDF reader stopped (exit ${code})`)));
+      }),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('PDF took too long to read')), limits.timeoutMs); }),
+    ]);
+    if (result.error) throw new Error(`PDF couldn't be parsed (${result.error})`);
+    const clean = result.text.replace(/\s+/g, ' ').trim();
+    return realWords(clean).length >= MIN_REAL_WORDS ? clean : null;
+  } finally {
+    clearTimeout(timer);
+    await worker.terminate();
+  }
 }
 
-// Fetch one source. kind: text (page or PDF text read) | file (not readable: scanned PDF,
-// image, other file) | blocked | down.
+// Read a response body, stopping as soon as it passes `cap` bytes. null when too big.
+export async function readCapped(res, cap = MAX_BYTES) {
+  const declared = Number(res.headers.get('content-length'));
+  if (declared > cap) { await res.body?.cancel?.(); return null; }
+  if (!res.body?.getReader) {
+    const buf = res.arrayBuffer ? new Uint8Array(await res.arrayBuffer()) : new TextEncoder().encode(await res.text());
+    return buf.byteLength > cap ? null : buf;
+  }
+  const reader = res.body.getReader();
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > cap) { await reader.cancel(); return null; }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let at = 0;
+  for (const c of chunks) { out.set(c, at); at += c.byteLength; }
+  return out;
+}
+
+const isPdf = (bytes) => new TextDecoder('latin1').decode(bytes.subarray(0, 1024)).includes('%PDF-');
+
 export async function fetchSource(url, { fetchImpl = fetch, timeoutMs = 20000 } = {}) {
   try {
     const res = await fetchImpl(url, {
@@ -115,20 +162,21 @@ export async function fetchSource(url, { fetchImpl = fetch, timeoutMs = 20000 } 
     if (BLOCKED.has(res.status)) return { kind: 'blocked', status: res.status, finalUrl };
     if (!res.ok) return { kind: 'down', status: res.status, finalUrl };
     const type = res.headers.get('content-type') ?? '';
-    if (type.includes('html') || type.startsWith('text/')) {
-      return { kind: 'text', status: res.status, finalUrl, text: htmlToText(await res.text()) };
-    }
-    if (type.includes('pdf') || /\.pdf($|[?#])/i.test(finalUrl)) {
-      const bytes = await res.arrayBuffer();
-      if (bytes.byteLength > MAX_PDF_BYTES) return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: 'PDF over 30 MB, not read' };
-      let text = null;
+    const bytes = await readCapped(res);
+    if (!bytes) return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: 'over 30 MB, not read' };
+    // Check the bytes, not the label: a PDF served as text/plain must still go through the PDF path.
+    if (isPdf(bytes)) {
+      let text;
       try {
         text = await pdfText(bytes);
-      } catch {
-        return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: "PDF couldn't be parsed" };
+      } catch (e) {
+        return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: e.message };
       }
       if (text) return { kind: 'text', status: res.status, finalUrl, text, format: 'pdf' };
       return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: 'PDF has no text layer (scanned or image-only)' };
+    }
+    if (type.includes('html') || type.startsWith('text/')) {
+      return { kind: 'text', status: res.status, finalUrl, text: htmlToText(new TextDecoder().decode(bytes)) };
     }
     return { kind: 'file', status: res.status, finalUrl, contentType: type, reason: `not a web page or PDF (${type || 'unknown type'})` };
   } catch (e) {

@@ -36,3 +36,5 @@ writeFileSync(new URL('text.pdf', dir), pdf([
 writeFileSync(new URL('scanned.pdf', dir), pdf([]));
 // A scan with only a stamped page number: some text, but far too little to check a quote against.
 writeFileSync(new URL('pagenumber.pdf', dir), pdf(['Page 1 of 12']));
+// A real one-sentence text layer: short, but genuine, so it must be read.
+writeFileSync(new URL('short.pdf', dir), pdf(['Golf uses 531 billion gallons of water a year.']));

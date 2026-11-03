@@ -9,7 +9,7 @@ import { checkStructure } from '../../scripts/checks/lib.mjs';
 import { askJev, JEV_ENDPOINT } from '../../scripts/checks/jev.mjs';
 import { assess, run as recheck } from '../../scripts/checks/recheck-sources.mjs';
 import { run as chatgpt } from '../../scripts/checks/source-check-chatgpt.mjs';
-import { bestExcerpt, fetchSource, quoteFound, readCheck, replaceSources } from '../../scripts/checks/sources.mjs';
+import { bestExcerpt, fetchSource, pdfText, PDF_LIMITS, quoteFound, readCheck, replaceSources } from '../../scripts/checks/sources.mjs';
 import { stamp } from '../../scripts/checks/fingerprint.mjs';
 import { sourceFingerprint, sourceIssues } from '../../src/lib/check-scale.mjs';
 
@@ -346,4 +346,39 @@ test('PDFs: a page number alone is not a text layer', async () => {
   const r = await fetchSource('https://a.test/scan.pdf', { fetchImpl: async () => pdfRes('pagenumber.pdf') });
   assert.equal(r.kind, 'file');
   assert.match(r.reason, /no text layer/);
+});
+
+test('PDFs: detected by their bytes, so a scan served as text/plain is still a scan', async () => {
+  const asText = (name) => ({ ...pdfRes(name), headers: { get: (k) => (k === 'content-type' ? 'text/plain' : null) } });
+  const scan = await fetchSource('https://a.test/x', { fetchImpl: async () => asText('scanned.pdf') });
+  assert.equal(scan.kind, 'file');
+  const real = await fetchSource('https://a.test/x', { fetchImpl: async () => asText('text.pdf') });
+  assert.equal(real.format, 'pdf');
+});
+
+test('PDFs: one genuine sentence counts as a text layer', async () => {
+  const r = await fetchSource('https://a.test/s.pdf', { fetchImpl: async () => pdfRes('short.pdf') });
+  assert.equal(r.kind, 'text');
+  assert.ok(quoteFound(r.text, '531 billion gallons'));
+});
+
+test('downloads stop at the size cap instead of reading the whole body', async () => {
+  let reads = 0;
+  const mb = new Uint8Array(1024 * 1024);
+  const body = { getReader: () => ({ read: async () => (++reads > 40 ? { done: true } : { done: false, value: mb }), cancel: async () => {} }) };
+  const big = { ok: true, status: 200, url: '', headers: { get: () => null }, body };
+  const r = await fetchSource('https://a.test/huge.pdf', { fetchImpl: async () => big });
+  assert.equal(r.kind, 'file');
+  assert.match(r.reason, /over 30 MB/);
+  assert.equal(reads, 31); // stopped right after passing 30 MB, not at 40
+  let touched = false;
+  const declared = { ok: true, status: 200, url: '', headers: { get: (k) => (k === 'content-length' ? String(50 * 1024 * 1024) : null) }, body: { getReader: () => { touched = true; } } };
+  assert.equal((await fetchSource('https://a.test/declared.pdf', { fetchImpl: async () => declared })).kind, 'file');
+  assert.equal(touched, false); // refused from Content-Length before reading anything
+});
+
+test('PDF reading has a deadline: a slow file is cut off, not waited on', async () => {
+  const bytes = readFileSync('tests/checks/fixtures/pdf/text.pdf');
+  await assert.rejects(pdfText(bytes, { ...PDF_LIMITS, timeoutMs: 1 }), /took too long/);
+  assert.ok((await pdfText(bytes)).includes('531 billion'));
 });
