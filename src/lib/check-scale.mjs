@@ -56,6 +56,9 @@ export const MODEL_RESULTS = [
   { id: 'supports', label: 'Supports' },
   { id: 'partly', label: 'Partly supports' },
   { id: 'doesnt-support', label: "Doesn't support" },
+  // Written by code when the page couldn't be read (paywall, scanned PDF, down). Blocks
+  // publishing until a person opens the source and adds confirmedBy.
+  { id: 'unread', label: "Couldn't read the page" },
 ];
 export const RECHECK_STATUSES = [
   { id: 'ok', label: 'Still live and still says this' },
@@ -68,6 +71,7 @@ const modelCheck = z.strictObject({
   result: z.enum(MODEL_RESULTS.map((r) => r.id)),
   note: z.string().optional(),
   for: z.string().optional(), // sourceFingerprint() of the source when it was checked
+  confirmedBy: z.string().min(1).optional(), // for "unread": who checked the source by hand
 });
 const recheck = z.strictObject({
   date: day(isoDay),
@@ -117,6 +121,7 @@ export function sourceIssues(sources, { draft }) {
       const c = v[model];
       if (!c) issues.push(`sources.${i}: no ${model} check (every source is checked by Claude Haiku and ChatGPT)`);
       else if (c.result === 'doesnt-support') issues.push(`sources.${i}: ${model} says this source doesn't support the claim`);
+      else if (c.result === 'unread' && !c.confirmedBy) issues.push(`sources.${i}: ${model} couldn't read this source; a person must open it and add confirmedBy: "<name>"`);
       else if (!c.for) issues.push(`sources.${i}: ${model} check has no fingerprint ("for"); run npm run checks:fingerprint -- <file> --stamp haiku`);
       else if (c.for !== sourceFingerprint(s)) issues.push(`sources.${i}: ${model} check is stale (url, quote or claim changed since)`);
     }

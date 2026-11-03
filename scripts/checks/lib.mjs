@@ -14,12 +14,22 @@ export function parseMdx(text) {
 }
 
 // Body with MDX/HTML comments and code fences removed, so commented-out content doesn't count.
-// Repeats until nothing changes, so a comment rebuilt by an earlier removal can't survive.
+// Cut every open...close span, scanning from the start again after each cut, so a span
+// rebuilt by an earlier cut is cut too. An unclosed opener is left as written.
+function cutSpans(text, open, close) {
+  let out = text;
+  for (;;) {
+    const at = out.indexOf(open);
+    const end = at === -1 ? -1 : out.indexOf(close, at + open.length);
+    if (end === -1) return out;
+    out = out.slice(0, at) + out.slice(end + close.length);
+  }
+}
 export function renderedBody(body) {
   let out = body;
   for (let prev; prev !== out; ) {
     prev = out;
-    out = out.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/```[\s\S]*?```/g, '');
+    out = cutSpans(cutSpans(cutSpans(out, '{/*', '*/}'), '<!--', '-->'), '```', '```');
   }
   return out;
 }

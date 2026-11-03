@@ -124,8 +124,13 @@ page on their own:
    part around the quote (12,000 characters, about 3,000 tokens) to `gpt-5.4-mini` with a
    300-token answer cap and at most 12 sources per run. It commits `verification.chatgpt` to the
    branch ("Source check: ChatGPT results") and writes a summary to the run page. Only new or
-   edited sources are sent. PDFs are read too (text extracted in code); scanned PDFs with no
-   text and paywalled pages are reported "check by hand".
+   edited sources are sent. PDFs are read too (text extracted in code). A page it can't read
+   (scanned PDF with no text, paywall or bot wall, link down) gets `result: "unread"` with the
+   reason in `note`, stamped like any other result. That counts as recorded for the PR's
+   verify step, but **blocks publishing until a person opens the source and adds
+   `confirmedBy: "<name>"`** to that chatgpt block; the card then says "couldn't read the page ·
+   checked by hand by <name>". To retry instead (say the site was down), delete the block and
+   push the branch again before the PR is open.
    **Off unless the repo variable `SOURCE_CHECK_CHATGPT` is `on`.**
 
    **It never commits onto a branch with an open PR.** A bot commit on an open PR starts new
@@ -148,7 +153,7 @@ Haiku's with `npm run checks:fingerprint -- <file> --stamp haiku`.
 
 Publishing rule (schema, so `checks:validate`, `checks:verify` and the build all enforce it): a
 check with `draft: false` needs a `haiku` and a `chatgpt` result on every source, each
-`supports` or `partly` and stamped with the current fingerprint. `doesnt-support`, a missing or
+`supports` or `partly` (or `unread` with `confirmedBy`) and stamped with the current fingerprint. `doesnt-support`, an unconfirmed `unread`, a missing or
 stale fingerprint, or `sample: true` blocks it. Drafts only warn.
 
 **Cost of the ChatGPT check** (`gpt-5.4-mini` list price $0.75 per million input tokens and

@@ -442,3 +442,46 @@ test('replaceSources falls back to a full rewrite when a non-verification field 
   sources[1].title = 'A new title';
   assert.deepEqual(readCheck(replaceSources(sample, sources)).sources, sources);
 });
+
+test('an unreadable page gets a recorded "unread" result: verify-only accepts it, publishing needs confirmedBy', async () => {
+  const dir = tempChecks();
+  const file = join(dir, 'published.mdx');
+  const fetchImpl = async (url) => {
+    if (new URL(url).hostname === 'api.openai.com') return json(200, { output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ result: 'supports', quoteFound: true, note: 'n' }) }] }], usage: {} });
+    if (url.endsWith('/gone')) return page(404, '');
+    if (url.endsWith('.pdf')) return pdfRes('scanned.pdf');
+    return page(200, 'about 519 milliliters per email');
+  };
+  const r = await chatgpt({ args: [file, '--write', '--today', '2026-11-03'], env: { OPENAI_API_KEY: 'k' }, fetchImpl, log: quiet });
+  assert.equal(r.sent, 2); // the 404 and the scanned PDF are not sent to the model
+  assert.match(r.comment, /\*\*unread\*\*.*HTTP 404/);
+  assert.match(r.comment, /blocks publishing until a person/);
+  const s = readCheck(readFileSync(file, 'utf8')).sources;
+  assert.equal(s[1].verification.chatgpt.result, 'unread');
+  assert.equal(s[1].verification.chatgpt.for, sourceFingerprint(s[1]));
+  assert.equal(s[3].verification.chatgpt.result, 'unread');
+  assert.deepEqual((await verifyOnly([file], quiet)).missing, []); // recorded, so the PR isn't stuck
+  const again = await chatgpt({ args: [file, '--write', '--today', '2026-11-03'], env: { OPENAI_API_KEY: 'k' }, fetchImpl, log: quiet });
+  assert.equal(again.rows.length, 0); // not retried on every push
+  // Publishing: unread blocks until a person confirms it.
+  const fp = sourceFingerprint(src());
+  const unread = (extra = {}) => src({ verification: { haiku: { date: '2026-11-01', result: 'supports', for: fp }, chatgpt: { date: '2026-11-01', result: 'unread', for: fp, ...extra } } });
+  assert.match(sourceIssues([unread()], { draft: false })[0], /chatgpt couldn't read this source; a person must open it and add confirmedBy/);
+  assert.deepEqual(sourceIssues([unread({ confirmedBy: 'Jordan' })], { draft: false }), []);
+  assert.deepEqual(sourceIssues([unread()], { draft: true }), []);
+  rmSync(dir, { recursive: true });
+});
+
+test('renderedBody: an unclosed comment opener is left as written', () => {
+  assert.equal(renderedBody('a <!-- b'), 'a <!-- b');
+  assert.equal(renderedBody('a {/* x */} b ```\ncode\n``` c'), 'a  b  c');
+});
+
+test('unread results are saved even when no source in the file was readable', async () => {
+  const dir = tempChecks();
+  const file = join(dir, 'published.mdx');
+  const r = await chatgpt({ args: [file, '--write', '--today', '2026-11-03'], env: { OPENAI_API_KEY: 'k' }, fetchImpl: async () => page(503, ''), log: quiet });
+  assert.equal(r.sent, 0);
+  assert.deepEqual(readCheck(readFileSync(file, 'utf8')).sources.map((s) => s.verification.chatgpt.result), ['unread', 'unread', 'unread', 'unread']);
+  rmSync(dir, { recursive: true });
+});

@@ -132,7 +132,12 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
       if (sent >= max) { skippedForCap++; continue; }
       const page = await getPage(s.url);
       if (page.kind !== 'text') {
-        rows.push({ file, n: i + 1, s, line: `⚠️ couldn't read the page (${page.kind === 'file' ? page.reason : `HTTP ${page.status || 'error'}`}): check by hand and add the chatgpt block` });
+        // Recorded, so the PR's verify step sees a result; "unread" blocks publishing until a
+        // person opens the source and adds confirmedBy. Delete the block to retry on the next push.
+        const why = page.kind === 'file' ? page.reason : `HTTP ${page.status || 'error'}`;
+        s.verification = { ...s.verification, chatgpt: { date, result: 'unread', note: `Couldn't read the page (${why}).`, for: sourceFingerprint(s) } };
+        changed = true;
+        rows.push({ file, n: i + 1, s, line: `⚠️ **unread**: couldn't read the page (${why}). A person must open it and add \`confirmedBy\`.` });
         continue;
       }
       sent++;
@@ -153,6 +158,7 @@ export async function run({ args = process.argv.slice(2), env = process.env, log
   if (!rows.length) out.push('Every source already has a current ChatGPT result. Nothing sent.');
   for (const r of rows) out.push(`- \`${r.file.split('/').pop()}\` source ${r.n}, [${r.s.title.replace(/[[\]]/g, '')}](${r.s.url}): ${r.line}`);
   if (skippedForCap) out.push('', `${skippedForCap} more source(s) not checked: over the ${max}-source cap for one run. Push the branch again to continue.`);
+  if (rows.some((r) => r.line.includes('**unread**'))) out.push('', 'A source marked unread blocks publishing until a person checks it by hand and adds `confirmedBy: "<name>"` to its chatgpt block.');
   if (rows.some((r) => r.line.includes('doesnt-support'))) out.push('', "A source marked doesn't-support blocks publishing until it is replaced or the claim is fixed.");
   out.push('', `${sent} source(s) sent to \`${MODEL}\`: ${usage.input} input + ${usage.output} output tokens, about $${cost.toFixed(4)}.`);
   const comment = `${out.join('\n')}\n`;

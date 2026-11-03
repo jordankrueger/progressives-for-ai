@@ -1187,6 +1187,7 @@
 .sc-check.r-supports .sc-icon { color: var(--primary); }
 .sc-check.r-partly .sc-icon { color: #a16207; }
 .sc-check.r-doesnt-support, .sc-check.r-warn { color: #b91c1c; }
+.sc-check.r-unread { color: #92400e; }
 .sc-check.r-pending { color: var(--text-muted); }
 .sc-note { color: var(--text-muted); }
 .sc-sample { margin: 10px 0 0; font-size: 12px; color: #78350f; }

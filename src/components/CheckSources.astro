@@ -52,8 +52,12 @@ const recheckLabel = (id: string) => RECHECK_STATUSES.find((r) => r.id === id)?.
               const name = model === 'haiku' ? 'Claude Haiku' : 'ChatGPT';
               return c ? (
                 <li class={`sc-check r-${c.result}`}>
-                  <span class="sc-icon" aria-hidden="true">{c.result === 'doesnt-support' ? '✕' : '✓'}</span>
-                  <span>Checked by {name} · {fmt(c.date)} · <strong>{resultLabel(c.result)}</strong>{c.result !== 'supports' && c.note && <span class="sc-note"> {c.note}</span>}</span>
+                  <span class="sc-icon" aria-hidden="true">{c.result === 'doesnt-support' ? '✕' : c.result === 'unread' && !c.confirmedBy ? '!' : '✓'}</span>
+                  {c.result === 'unread' ? (
+                    <span>{name} couldn't read the page · {fmt(c.date)}{c.confirmedBy ? <> · <strong>checked by hand by {c.confirmedBy}</strong></> : <> · <strong>needs a person to check</strong></>}</span>
+                  ) : (
+                    <span>Checked by {name} · {fmt(c.date)} · <strong>{resultLabel(c.result)}</strong>{c.result !== 'supports' && c.note && <span class="sc-note"> {c.note}</span>}</span>
+                  )}
                 </li>
               ) : (
                 <li class="sc-check r-pending"><span class="sc-icon" aria-hidden="true">…</span><span>{name} check pending</span></li>

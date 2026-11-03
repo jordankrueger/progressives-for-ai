@@ -36,7 +36,8 @@ sources:
     verification:
       # Written by the Claude Haiku subagent in the research routine (one per source):
       haiku: { date: "2026-01-01", result: "supports", note: "One sentence." }
-      # chatgpt: written by the source-check-chatgpt workflow when the check/<slug> branch is pushed. Don't hand-write it.
+      # chatgpt: written by the source-check-chatgpt workflow when the check/<slug> branch is pushed. Don't hand-write it,
+      #   except confirmedBy: "<name>" on an "unread" result once a person has checked the source by hand.
       # recheck: written by the monthly Jev re-check ("ok" only). A person sets warnings:
       #   recheck: { date: "2026-02-01", status: "link-down" }   # or "changed", "needs-new-source"
 draft: true
