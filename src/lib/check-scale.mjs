@@ -137,7 +137,7 @@ export const headlineFields = {
   publishedDate: z.coerce.date(),
   verdict: z.enum(VERDICT_IDS),
   sourceType: z.enum(SOURCE_TYPE_IDS),
-  topicPage: z.string().min(1), // id of a Reality Check topic page, e.g. "water"
+  topicPage: z.string().min(1).optional(), // id of an existing Reality Check topic page, e.g. "water"; left out if none fits
   trackerPrediction: z.url({ protocol: /^https?$/ }).optional(), // aiprogresstracker.com link
   bottomLine: z.string().min(1),
   shortVersion: z.array(z.string().min(1)).length(3),

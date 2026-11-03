@@ -16,9 +16,12 @@ const offline = args.includes('--offline') || process.env.CHECKS_OFFLINE === '1'
 let files = args.filter((a) => !a.startsWith('--'));
 if (files.length === 0) files = (await readdir(CHECKS_DIR)).filter((f) => f.endsWith('.mdx')).map((f) => join(CHECKS_DIR, f));
 
+// Topic pages are the .mdx files directly in the reality-check folder (not the checks/ subfolder, not _fixtures).
+const topicIds = (await readdir('src/content/reality-check')).filter((f) => f.endsWith('.mdx') && !f.startsWith('_')).map((f) => f.slice(0, -4));
+
 let failed = false;
 for (const file of files) {
-  const { errors, warnings, body, sources = [] } = checkStructure(await readFile(file, 'utf8'));
+  const { errors, warnings, body, sources = [] } = checkStructure(await readFile(file, 'utf8'), { topicIds });
   if (!offline && sources.length) {
     const links = await checkLinks(sources.map((s) => s.url));
     errors.push(...links.errors);

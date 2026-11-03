@@ -18,7 +18,7 @@ const slug = checkSlug(entry);
 const verdict = verdictById(d.verdict)!;
 const canonicalUrl = `https://progressivesforai.com/checks/${slug}/`;
 const ogImage = `${SITE_ORIGIN}/checks/og/${slug}.png`;
-const topicPage = await getEntry('reality-check', d.topicPage!);
+const topicPage = d.topicPage ? await getEntry('reality-check', d.topicPage) : undefined;
 const shareBlurb = `“${d.headline}” (${d.outlet}): ${verdict.label}. ${d.bottomLine}`;
 const mistakeHref = `mailto:${CHECKS_EMAIL}?subject=${encodeURIComponent(`Mistake report: ${d.title}`)}&body=${encodeURIComponent(`Page: ${canonicalUrl}\n\nWhat's wrong:\n\nYour source:\n`)}`;
 const jsonLd = {

@@ -71,31 +71,36 @@ publish it). Validate data with `npm run checks:validate -- <path-to-headline-da
 
 ## What the watcher watches
 
-Subreddits, via web search restricted to reddit.com only (never Reddit's API, never scraping):
-r/writing, r/selfpublish, r/books, r/publishing, r/ArtistHate, r/ArtistLounge, r/environment,
-r/climate, r/energy, r/collapse, r/technology, r/Futurology, r/artificial, r/ChatGPT,
-r/BetterOffline, r/antiai, r/FuckAI, r/news, r/science, r/Teachers.
+**News only**, through web searches on harm keywords (water, electricity bills, jobs, students,
+art and book theft, copyright, mental health, emissions, "study finds" brain or cognition, AI
+bubble), stories from the last 14 days, one row per outlet. Only links to published stories are
+logged. No usernames, no quoted posts.
 
-Plus news searches on harm keywords (water, electricity bills, jobs, students, art and book
-theft, copyright, mental health, emissions, "study finds" brain or cognition, AI bubble).
-Only links to published stories are logged. No usernames, no quoted posts.
+**Reddit is not watched automatically.** The search tool the routine runs with can't reach it
+(tested 2026-11-03: `site:` ignored, reddit.com refused as a domain filter, only mirror sites
+returned, no vote counts). The Monday shortlist instead links to each of these subreddits' top
+posts of the week for a person to skim: r/writing, r/selfpublish, r/books, r/publishing,
+r/ArtistHate, r/ArtistLounge, r/environment, r/climate, r/energy, r/collapse, r/technology,
+r/Futurology, r/artificial, r/ChatGPT, r/BetterOffline, r/antiai, r/FuckAI, r/news, r/science,
+r/Teachers.
 
 ## "Taking off" signals
 
 A claim is taking off when it is:
 
-- seen **two days in a row** (same `claimId` in consecutive sightings files);
-- seen in **two or more subreddits**;
-- seen **jumping from an anti-AI subreddit** (r/ArtistHate, r/antiai, r/FuckAI, r/BetterOffline)
-  **to a big general one** (r/news, r/science, r/technology, r/Futurology, r/ChatGPT).
+- seen on **two or more days** (same `claimId` in more than one sightings file);
+- carried by **two or more different outlets**;
+- seen **jumping from a niche or advocacy outlet to a national one** (NPR, AP, Reuters, a big
+  newspaper, a major tech site).
 
-The shortlist scores reach, engagement, momentum (these signals) and checkability, 1 to 5 each.
+The shortlist drops claims older than 14 days, then scores reach, momentum (these signals),
+freshness and checkability, 1 to 5 each (scales in `tasks/shortlist.md`).
 
 ## Research checklist
 
 1. **Pin the claim.** The headline exactly as published, outlet, date, link; the claim in one sentence.
 2. **Read the original.** The study, report or survey itself, not coverage of it. Record its type.
-   Every source gets a short exact quote and the one claim it backs, then a Claude Haiku check.
+   Every source gets a short exact quote and the main claim it backs, then a Claude Haiku check.
 3. **Gather context,** including evidence for the headline, not only against it.
 4. **Second-opinion pass.** Reread the draft against the sources as a skeptic and fix what fails.
 5. **Verdict from the scale,** rating the headline as written, not the study.

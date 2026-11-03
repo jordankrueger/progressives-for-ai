@@ -148,3 +148,13 @@ test('broken frontmatter is reported as a frontmatter error', () => {
   assert.ok(checkStructure('no frontmatter here').errors[0].startsWith('frontmatter:'));
   assert.ok(checkStructure('---\ntitle: [unclosed\n---\nbody').errors[0].startsWith('frontmatter:'));
 });
+
+test('topicPage is optional; an id that is not a real topic page warns, never errors', () => {
+  const without = sample.replace(/^topicPage: .*\n/m, '');
+  assert.notEqual(without, sample, 'fixture should have a topicPage line');
+  assert.deepEqual(checkStructure(without).errors, []);
+  const unknown = checkStructure(sample.replace(/^topicPage: .*$/m, 'topicPage: "mental-health"'), { topicIds: ['water', 'energy'] });
+  assert.deepEqual(unknown.errors, []);
+  assert.ok(unknown.warnings.some((w) => w.includes('topicPage "mental-health" is not an existing topic page')), unknown.warnings.join('\n'));
+  assert.ok(!checkStructure(sample, { topicIds: ['water', 'energy'] }).warnings.some((w) => w.includes('topicPage')));
+});
