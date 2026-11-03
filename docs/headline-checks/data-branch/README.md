@@ -41,6 +41,10 @@ Rules:
   and "two or more subreddits" get counted.
 - Only news stories and reports. A Reddit post with no outside link is a person's post:
   skip it. Never record usernames or quote post or comment text.
+- `where` is the subreddit for a Reddit row, otherwise the outlet (or aggregator) where the story
+  was found. The daily watcher logs news only; it can't reach Reddit.
+- Put the story's publication date in `notes` ("published 2026-10-30"); the shortlist uses it
+  for its 14-day recency rule.
 - `upvotes` / `comments` only when the search result shows them. Never guess.
 - `status` is optional (`candidate` by default; also `researching`, `drafted`, `published`, `dropped`).
 
