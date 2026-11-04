@@ -1,0 +1,52 @@
+[
+  {
+    "headline": "New US Data Centers Projected to Emit More Carbon Than All of Mexico",
+    "outlet": "Claims Journal",
+    "url": "https://www.claimsjournal.com/news/national/2026/10/29/340971.htm",
+    "where": "Claims Journal",
+    "dateSeen": "2026-11-04",
+    "claimId": "data-center-buildout-erases-emissions-cuts",
+    "claim": "AI data center buildout would erase about 15 years of US power-sector greenhouse gas reductions.",
+    "notes": "published 2026-10-29; Bloomberg wire story (Eric Roston, Olivia Raimonde). Analysis is an internal Sierra Club estimate, an advocacy group (interested party); projections, not measured emissions. Figures: +618 million tons CO2 by 2030 (about 42%), mostly from off-grid gas. Bloomberg original page returned 403."
+  },
+  {
+    "headline": "US data center buildout risks erasing climate progress",
+    "outlet": "BusinessMirror",
+    "url": "https://businessmirror.com.ph/2026/10/28/us-data-center-buildout-risks-erasing-climate-progress/",
+    "where": "BusinessMirror",
+    "dateSeen": "2026-11-04",
+    "claimId": "data-center-buildout-erases-emissions-cuts",
+    "claim": "AI data center buildout would erase about 15 years of US power-sector greenhouse gas reductions.",
+    "notes": "published 2026-10-28; Bloomberg wire story republished (Eric Roston, Olivia Raimonde). Analysis attributed to the Sierra Club, an advocacy group (interested party); projections, not measured emissions. Same figures as Bloomberg: +618 million tons CO2 by 2030 (about 42%)."
+  },
+  {
+    "headline": "Report says new ChatGPT teen mode poses 'unacceptable risk' to youth safety",
+    "outlet": "WESA (WHYY)",
+    "url": "https://www.wesanews.org/health-science-tech/2026-10-27/chatgpt-for-teens-ai-safety",
+    "where": "WESA (WHYY)",
+    "dateSeen": "2026-11-04",
+    "claimId": "chatgpt-teen-mode-unsafe",
+    "claim": "ChatGPT's teen mode is an unacceptable risk to young people: it fails to alert parents when teens discuss self-harm and suicide.",
+    "notes": "published 2026-10-27; WHYY story by Emily Swanson. Report by Common Sense Media (advocacy nonprofit, interested party); test-based assessment, not a peer-reviewed study. Report release date not stated in article (Bloomberg covered it 2026-10-07). OpenAI disputes the findings."
+  },
+  {
+    "headline": "New York Times and three other US papers sue Brave over AI scraping",
+    "outlet": "TheNextWeb",
+    "url": "https://thenextweb.com/news/nyt-newspapers-sue-brave-ai-scraping",
+    "where": "TheNextWeb",
+    "dateSeen": "2026-11-04",
+    "claimId": "ai-scraping-harms-publishers",
+    "claim": "Brave scraped paywalled news articles, sold them to AI companies, and bypassed paywalls, harming publishers.",
+    "notes": "published 2026-11-02; federal suit in Manhattan filed by NYT, Daily News, Chicago Tribune, Orlando Sentinel against Brave Software. Allegations only; no court has ruled. Plaintiffs are the publishers (interested parties). Article says the suits allege Brave sells its scraped index to Anthropic, Perplexity, Mistral, xAI and Cohere."
+  },
+  {
+    "headline": "New York Times, Chicago Tribune Sue Tech Company Brave Over AI Copyright Claims",
+    "outlet": "TheWrap",
+    "url": "https://www.thewrap.com/industry-news/tech/new-york-times-chicago-tribune-brave-ai-copyright-lawsuit/",
+    "where": "TheWrap",
+    "dateSeen": "2026-11-04",
+    "claimId": "ai-scraping-harms-publishers",
+    "claim": "Brave scraped paywalled news articles, sold them to AI companies, and bypassed paywalls, harming publishers.",
+    "notes": "published 2026-11-02 (filed 'Monday'); same lawsuit as TheNextWeb row. Allegations only; no court has ruled. Plaintiffs are the publishers (interested parties)."
+  }
+]
