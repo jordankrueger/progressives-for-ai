@@ -618,6 +618,8 @@ test('existing subscriber blocklisted: no bonus email, same generic success', as
 // --- Website Starter Pack bonus (jordankrueger.com, Own Your Corner Part 2) ---
 
 const STARTER_PACK_URL = 'https://jordankrueger.com/share/starter-pack-17c6c919faea/';
+// Whole-line match: the link sits on its own line in the text body.
+const STARTER_PACK_LINE = /^https:\/\/jordankrueger\.com\/share\/starter-pack-17c6c919faea\/$/m;
 
 test('starter-pack on mission-control: subscribes to list 4, then sends the Starter Pack email from Jordan', async (t) => {
   const uuid = '11111111-2222-3333-4444-555555555555';
@@ -638,7 +640,7 @@ test('starter-pack on mission-control: subscribes to list 4, then sends the Star
   assert.equal(sent.from, 'Jordan Krueger <jordan@jordankrueger.com>');
   assert.equal(sent.subject, 'Your Website Starter Pack');
   assert.deepEqual(sent.to, ['jordan@example.com']);
-  assert.ok(sent.text.includes(STARTER_PACK_URL));
+  assert.match(sent.text, STARTER_PACK_LINE);
   assert.ok(sent.html.includes(`<a href="${STARTER_PACK_URL}">`));
   assert.ok(sent.text.includes("You're also now on Mission Control"));
   assert.ok(!sent.text.includes('ActionKit') && !sent.html.includes('ActionKit'));
@@ -684,7 +686,7 @@ test('starter-pack, existing subscriber unsubscribed from Mission Control: gets 
   assert.equal(response.status, 200);
   assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
   const { text, html } = JSON.parse(resendCalls(calls)[0].body);
-  assert.ok(text.includes(STARTER_PACK_URL));
+  assert.match(text, STARTER_PACK_LINE);
   assert.ok(!text.includes('Mission Control') && !html.includes('Mission Control'));
   assert.ok(!text.includes('{{') && !html.includes('{{'));
 });
