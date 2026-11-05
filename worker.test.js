@@ -614,3 +614,84 @@ test('existing subscriber blocklisted: no bonus email, same generic success', as
   assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
   assert.equal(resendCalls(calls).length, 0);
 });
+
+// --- Website Starter Pack bonus (jordankrueger.com, Own Your Corner Part 2) ---
+
+const STARTER_PACK_URL = 'https://jordankrueger.com/share/starter-pack-17c6c919faea/';
+
+test('starter-pack on mission-control: subscribes to list 4, then sends the Starter Pack email from Jordan', async (t) => {
+  const uuid = '11111111-2222-3333-4444-555555555555';
+  const calls = recordFetch(t, (url) => url.includes('/siteverify')
+    ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
+    : Response.json({ data: { id: 1, uuid } }));
+
+  const response = await worker.fetch(request({ bonus: 'starter-pack' }), allEnv);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls.map(c => c.url), [
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    'https://newsletter.example.com/api/subscribers',
+    'https://api.resend.com/emails',
+  ]);
+  assert.deepEqual(JSON.parse(calls[1].body).lists, [4]);
+  const sent = JSON.parse(resendCalls(calls)[0].body);
+  assert.equal(sent.from, 'Jordan Krueger <jordan@jordankrueger.com>');
+  assert.equal(sent.subject, 'Your Website Starter Pack');
+  assert.deepEqual(sent.to, ['jordan@example.com']);
+  assert.ok(sent.text.includes(STARTER_PACK_URL));
+  assert.ok(sent.html.includes(`<a href="${STARTER_PACK_URL}">`));
+  assert.ok(sent.text.includes("You're also now on Mission Control"));
+  assert.ok(!sent.text.includes('ActionKit') && !sent.html.includes('ActionKit'));
+  assert.ok(!sent.text.includes('{{') && !sent.html.includes('{{'));
+  assert.ok(sent.text.endsWith(`Unsubscribe: ${unsubLink(uuid)}`));
+  assert.equal(sent.headers['List-Unsubscribe'], `<${unsubLink(uuid)}>`);
+});
+
+test('ak-template email is unchanged by the starter-pack entry (still the template, no Starter Pack link)', async (t) => {
+  const calls = recordFetch(t, (url) => url.includes('/siteverify')
+    ? Response.json({ success: true, hostname: 'jordankrueger.com', action: 'newsletter' })
+    : Response.json({ data: { id: 1, uuid: '11111111-2222-3333-4444-555555555555' } }));
+
+  await worker.fetch(request({ bonus: 'ak-template' }), allEnv);
+
+  const sent = JSON.parse(resendCalls(calls)[0].body);
+  assert.equal(sent.subject, "Here's that ActionKit Production Template");
+  assert.ok(sent.text.includes('/copy'));
+  assert.ok(!sent.text.includes('starter-pack'));
+});
+
+test('starter-pack on a list without Turnstile (progressives-for-ai): subscribes, no Resend call', async (t) => {
+  const calls = recordFetch(t);
+  const response = await worker.fetch(
+    post({ Origin: 'https://jordankrueger.com', 'Content-Type': 'application/json' },
+      { email: 'jordan@example.com', list: 'progressives-for-ai', bonus: 'starter-pack' }), allEnv);
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls.map(c => c.url), ['https://newsletter.example.com/api/subscribers']);
+});
+
+test('starter-pack with a failed Turnstile check: no Listmonk, no Resend', async (t) => {
+  const calls = recordFetch(t, () => Response.json({ success: false }));
+  const response = await worker.fetch(request({ bonus: 'starter-pack' }), allEnv);
+  assert.equal(response.status, 400);
+  assert.deepEqual(calls.map(c => c.url), ['https://challenges.cloudflare.com/turnstile/v0/siteverify']);
+});
+
+test('starter-pack, existing subscriber unsubscribed from Mission Control: gets the link, no subscribed note, stays off', async (t) => {
+  const calls = existingMock(t, { id: 77, uuid: existingUuid, status: 'enabled', lists: [{ id: 4, subscription_status: 'unsubscribed' }] });
+
+  const response = await worker.fetch(request({ bonus: 'starter-pack' }), allEnv);
+
+  assert.equal(response.status, 200);
+  assert.equal(calls.filter(c => c.method === 'PUT').length, 0);
+  const { text, html } = JSON.parse(resendCalls(calls)[0].body);
+  assert.ok(text.includes(STARTER_PACK_URL));
+  assert.ok(!text.includes('Mission Control') && !html.includes('Mission Control'));
+  assert.ok(!text.includes('{{') && !html.includes('{{'));
+});
+
+test('starter-pack, existing blocklisted subscriber: no email', async (t) => {
+  const calls = existingMock(t, { id: 77, uuid: existingUuid, status: 'blocklisted', lists: [] });
+  const response = await worker.fetch(request({ bonus: 'starter-pack' }), allEnv);
+  assert.equal(response.status, 200);
+  assert.equal(resendCalls(calls).length, 0);
+});
