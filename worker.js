@@ -69,6 +69,30 @@ Jordan`,
 {{SUBSCRIBED_NOTE}}<p>Thanks for being here,<br>Jordan</p>`,
     subscribedNote: `You're now subscribed to Mission Control, my newsletter. I send it when I have something genuinely useful to share, not on a schedule. You can unsubscribe using the link at the bottom of any newsletter you receive, of course!`,
   },
+  // Website Starter Pack, from Part 2 of the Own Your Corner series on jordankrueger.com.
+  'starter-pack': {
+    from: 'Jordan Krueger <jordan@jordankrueger.com>',
+    subject: 'Your Website Starter Pack',
+    text: `Hi,
+
+Thanks for grabbing the Website Starter Pack. Here's your link:
+
+https://jordankrueger.com/share/starter-pack-17c6c919faea/
+
+It's one page: the checklist from the tutorial, plus 20 requests you can paste into Claude. It prints well, so you can tick the boxes as you go.
+
+If you get stuck, or once your site is live, just reply to this email. I'd love to see what you build.
+
+{{SUBSCRIBED_NOTE}}Thanks,
+Jordan`,
+    html: `<p>Hi,</p>
+<p>Thanks for grabbing the Website Starter Pack. Here's your link:</p>
+<p><a href="https://jordankrueger.com/share/starter-pack-17c6c919faea/"><strong>Open your Website Starter Pack &rarr;</strong></a></p>
+<p>It's one page: the checklist from the tutorial, plus 20 requests you can paste into Claude. It prints well, so you can tick the boxes as you go.</p>
+<p>If you get stuck, or once your site is live, just reply to this email. I'd love to see what you build.</p>
+{{SUBSCRIBED_NOTE}}<p>Thanks,<br>Jordan</p>`,
+    subscribedNote: `You're also now on Mission Control, my newsletter. I send it when I have something useful to share, not on a schedule. Every issue has an unsubscribe link.`,
+  },
 };
 
 export default {
