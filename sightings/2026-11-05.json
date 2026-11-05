@@ -1,0 +1,32 @@
+[
+  {
+    "headline": "Goldman says AI layoffs are starting to leave a 'long-lasting' scar, just like the last 40 years of history",
+    "outlet": "Fortune",
+    "url": "https://fortune.com/2026/10/30/goldman-sachs-ai-layoffs-displaced-workers-older-workers-past-tech-disruptions/",
+    "where": "Fortune",
+    "dateSeen": "2026-11-05",
+    "claimId": "ai-displaced-workers-longer-unemployment",
+    "claim": "Workers displaced by AI take longer to find new jobs and are more likely to stay unemployed a year later.",
+    "notes": "published 2026-10-30; Goldman Sachs economist Pierfrancesco Mei, Current Population Survey data for 2016-2025 job losses. Measurement: about one month longer to rehire and roughly 10 percentage points more likely to be jobless after a year. The 'long-lasting' label is partly extrapolation (Goldman says it is too early to assess all effects). Axios (2026-11-03) covers the same study but returned 403, so not logged separately."
+  },
+  {
+    "headline": "AI could displace one in 11 workers, Goldman says, but the layoffs are likely waiting for a recession",
+    "outlet": "Fortune",
+    "url": "https://fortune.com/2026/10/22/goldman-sachs-forecast-how-many-jobs-lost-to-ai-9-percent/",
+    "where": "Fortune",
+    "dateSeen": "2026-11-05",
+    "claimId": "ai-could-displace-one-in-11-workers",
+    "claim": "AI could displace up to about 9% of US workers, and slower hiring could cut employment by about another 3%.",
+    "notes": "published 2026-10-22; forecast, not a measurement. Goldman scenario assumes AI raises developed-economy productivity by 15%. Article says the largest layoffs are expected mainly during a recession."
+  },
+  {
+    "headline": "Report says 'circular financing' shows AI bubble 'primed to pop'",
+    "outlet": "Asia Times",
+    "url": "https://asiatimes.com/2026/10/report-says-circular-financing-shows-ai-bubble-primed-to-pop/",
+    "where": "Asia Times",
+    "dateSeen": "2026-11-05",
+    "claimId": "ai-bubble-harms-working-people",
+    "claim": "The AI investment boom is a financial bubble that could harm working-class Americans when it bursts.",
+    "notes": "published 2026-10-23 (page updated 2026-10-26); page credits Common Dreams. Report 'Brace for Impact' by Open Markets Institute and Americans for Financial Reform Education Fund: advocacy groups with a policy position (interested party); forecast of a crash, not a measurement of current harm. Report's own page dated 2026-10-16."
+  }
+]
