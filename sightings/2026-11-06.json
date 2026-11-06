@@ -1,0 +1,42 @@
+[
+  {
+    "headline": "Fewer jobs, new opportunities: AI is changing what's in store for new hires and managers alike",
+    "outlet": "Northeastern University",
+    "url": "https://news.northeastern.edu/2026/11/02/ai-hiring-entry-level-jobs/",
+    "where": "Northeastern University",
+    "dateSeen": "2026-11-06",
+    "claimId": "ai-screening-fewer-entry-level-hires",
+    "claim": "AI résumé screening is leading managers to hire fewer entry-level workers.",
+    "notes": "published 2026-11-02; university's own AI & Society Survey of 8,174 people involved in hiring decisions. Northeastern is the source of the survey. Survey of managers' reported behavior, not a measured hiring count. Same article says other managers expect newcomers to do more advanced work."
+  },
+  {
+    "headline": "Kids Hooked on AI Chatbots Are Showing Dramatically Worse Mental Health",
+    "outlet": "Futurism",
+    "url": "https://futurism.com/artificial-intelligence/kids-hooked-ai-worse-mental-health",
+    "where": "Futurism",
+    "dateSeen": "2026-11-06",
+    "claimId": "chatbot-teen-mental-health",
+    "claim": "Young people who use AI chatbots during emotional distress have worse mental health and more suicidal thoughts and attempts.",
+    "notes": "published 2026-11-05; reports the JED Foundation's AI and Mental Health Report 2026, a mental health advocacy group's own survey. Sample size not stated in the article. Correlational; the article does not establish cause. Same study as the NPR-syndicated OPB and LPM rows."
+  },
+  {
+    "headline": "AI Rebounding: Companies that Cut Jobs Are Now Asking Workers to Come Back",
+    "outlet": "Breitbart",
+    "url": "https://breitbart.com/tech/2026/11/03/ai-rebounding-companies-that-cut-jobs-are-now-asking-workers-to-come-back",
+    "where": "Breitbart",
+    "dateSeen": "2026-11-06",
+    "claimId": "ai-layoffs-rehiring-regret",
+    "claim": "Workers laid off because of AI are being asked back, which suggests the AI-driven layoffs were a mistake.",
+    "notes": "published 2026-11-03; SHL survey (SHL is a talent assessment company, so an interested party), fielded June-July 2026 by Propeller Insights, over 1,000 US and 1,000 UK workers. The article does not say the survey found the layoffs a mistake; that framing comes from an SHL executive quoted in the piece."
+  },
+  {
+    "headline": "Nearly 1 in 5 workers laid off due to AI are asked to return, survey finds",
+    "outlet": "People Matters",
+    "url": "https://www.peoplematters.in/news/business/nearly-1-in-5-workers-laid-off-due-to-ai-are-asked-to-return-survey-finds-53098",
+    "where": "People Matters",
+    "dateSeen": "2026-11-06",
+    "claimId": "ai-layoffs-rehiring-regret",
+    "claim": "Workers laid off because of AI are being asked back, which suggests the AI-driven layoffs were a mistake.",
+    "notes": "published 2026-11-02; same SHL survey as the CNBC row (SHL is a talent assessment company, an interested party; fielded by Propeller Insights June-July 2026). Survey does not itself say the layoffs were a mistake."
+  }
+]
