@@ -1,0 +1,42 @@
+[
+  {
+    "headline": "AI axe falls, 1.35 lakh tech jobs gone in 10 months",
+    "outlet": "Onmanorama",
+    "url": "https://onmanorama.com/news/business/2026/11/05/ai-axe-falls-1-35-lakh-tech-jobs-gone-in-10-months.html",
+    "where": "Onmanorama",
+    "dateSeen": "2026-11-08",
+    "claimId": "ai-blamed-job-cuts",
+    "claim": "Companies are cutting jobs and tying the cuts to AI.",
+    "notes": "published 2026-11-05 (Malayala Manorama, Business desk). Counts come from the layoffs.fyi tracker (through 2026-10-29: 135,446 tech layoffs at 334 companies, 93,217 attributed to AI). The article repeats the tracker's figures without checking them. Attribution is what companies said, not a measured effect."
+  },
+  {
+    "headline": "October Layoffs at Three-Year Low; Seasonal Hiring Plans Up 26%",
+    "outlet": "Challenger, Gray & Christmas",
+    "url": "https://www.challengergray.com/blog/october-layoffs-at-three-year-low-seasonal-hiring-plans-up-26/",
+    "where": "Challenger, Gray & Christmas",
+    "dateSeen": "2026-11-08",
+    "claimId": "ai-blamed-job-cuts",
+    "claim": "Companies are cutting jobs and tying the cuts to AI.",
+    "notes": "published 2026-11-05; monthly job-cut report. Year to date: 121,401 announcements citing AI, about 20% of all cuts; October: 1,265 AI-cited cuts, the lowest monthly figure this year. Reasons are employer-stated; Challenger says a company citing AI does not prove the technology replaced workers. Primary source, not news coverage. AI is no longer the top stated reason."
+  },
+  {
+    "headline": "Eminem song publisher seeks $41M in copyright lawsuit vs. AI platform",
+    "outlet": "Yahoo News",
+    "url": "https://www.yahoo.com/news/us/articles/eminem-song-publisher-seeks-41m-155107841.html",
+    "where": "Yahoo News",
+    "dateSeen": "2026-11-08",
+    "claimId": "ai-training-harms-creators",
+    "claim": "Training AI on copyrighted songs harms songwriters and the music industry.",
+    "notes": "published 2026-11-07; syndicated from Detroit Free Press (Brian McCollum). Eight Mile Style (publisher, not Eminem) sued Suno in San Francisco federal court, seeking more than $41M for about 269-270 works. Allegations only; Suno's response not in the article."
+  },
+  {
+    "headline": "Elvis Presley rights holders and Eminem's publisher sue AI music generator Suno",
+    "outlet": "Express Tribune",
+    "url": "https://tribune.com.pk/story/2639163/elvis-presley-rights-holders-and-eminems-publisher-sue-ai-music-generator-suno",
+    "where": "Express Tribune",
+    "dateSeen": "2026-11-08",
+    "claimId": "ai-training-harms-creators",
+    "claim": "Training AI on copyrighted songs harms songwriters and the music industry.",
+    "notes": "published 2026-11-07; author credited only as 'Pop Culture & Art', no wire credit. Covers the Eight Mile Style suit and a separate Presley-estate suit filed the same day. Article gives no damages figure. Allegations only; no court has ruled."
+  }
+]
