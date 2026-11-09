@@ -1,0 +1,22 @@
+[
+  {
+    "headline": "Suno AI music generator sued again for copyright infringement",
+    "outlet": "Engadget",
+    "url": "https://engadget.com/2310316/suno-ai-music-generator-sued-again-for-copyright-infringement",
+    "where": "Engadget",
+    "dateSeen": "2026-11-09",
+    "claimId": "ai-training-harms-creators",
+    "claim": "Training AI on copyrighted songs harms songwriters and the music industry.",
+    "notes": "published 2026-11-08; covers the Presley rights holders' and Eight Mile Style's separate suits against Suno. Allegations only; no court has ruled. Plaintiffs are rights holders (interested parties). Suno told Variety it does not allow unauthorized use of artists' work. Engadget does not state a damages figure for the Suno suits; the $41M it mentions is from the Presley suit against Anthropic, which conflicts with the $41M sought from Suno in the Detroit Free Press syndication logged 2026-11-08."
+  },
+  {
+    "headline": "Stratos Data Center Will Emit Air Pollution That's Linked to Premature Deaths and Health Economic Damages for Utah & States Downwind",
+    "outlet": "CleanTechnica",
+    "url": "https://cleantechnica.com/2026/11/03/stratos-data-center-will-emit-air-pollution-thats-linked-to-premature-deaths-and-health-economic-damages-for-utah-states-downwind",
+    "where": "CleanTechnica",
+    "dateSeen": "2026-11-09",
+    "claimId": "data-center-air-pollution-premature-deaths",
+    "claim": "Pollution from a planned data center is linked to premature deaths and health damages in Utah and downwind states.",
+    "notes": "published 2026-11-03; byline John Walke, NRDC (advocacy group, interested party). Modeled projection by EmPower Analytics for NRDC, not a measured outcome: about 5-45 additional premature deaths and $75-$690 million in health damages a year at full build-out (9 GW). The article does not say the facility serves AI workloads; logged because it is a data center and the watcher covers the electricity and energy topic. NRDC's own release returned 403."
+  }
+]
