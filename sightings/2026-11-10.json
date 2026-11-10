@@ -1,0 +1,32 @@
+[
+  {
+    "headline": "New Data Centers in the US Set to Wipe Out 15 Years of Greenhouse Gas Reductions",
+    "outlet": "Futurism",
+    "url": "https://futurism.com/artificial-intelligence/data-centers-us-greenhouse-gas-reductions-emissions",
+    "where": "Futurism",
+    "dateSeen": "2026-11-10",
+    "claimId": "data-center-buildout-erases-emissions-cuts",
+    "claim": "The data center buildout will erase years of US climate progress by pushing power-sector emissions up.",
+    "notes": "published 2026-11-01; relays the Sierra Club analysis first reported by Bloomberg (Bloomberg page returned 403, not read). Advocacy group's own projection, an interested party. Forecast, not a measurement: 2.1 billion metric tons of CO2 by 2030, up 42% (618 million tons) from 2025, assuming planned AI developments start on schedule. Article notes the number of projects at risk of cancellation is rising. Figures not independently verified."
+  },
+  {
+    "headline": "‘AI rebounding’: Nearly 20% of U.S. workers replaced by AI are being asked back—now they’re demanding higher pay, job security and AI transparency",
+    "outlet": "Fortune",
+    "url": "https://fortune.com/2026/11/09/ai-rebounding-20-us-workers-replaced-higher-pay-job-security/",
+    "where": "Fortune",
+    "dateSeen": "2026-11-10",
+    "claimId": "ai-layoffs-rehiring-regret",
+    "claim": "Employers replaced workers with AI, then asked some of them back, with regret over AI-linked cuts.",
+    "notes": "published 2026-11-09 (Fortune News Fellow Joshua Hong). Main figure from an SHL survey (SHL is a commercial talent-assessment firm; article relies on its press release): 19.1% of US respondents said their employer replaced them with AI and later asked them back; 16% across US and UK. Self-reported; no sample size or methodology given. Article calls it an early indication, not an established trend. Article also says AI-attributed announced cuts were 121,401 through October. A Robert Half figure (32% of hiring managers reinstated AI-cut roles) is cited secondhand."
+  },
+  {
+    "headline": "1 In 4 Data Centers Could Strain Local Water Supplies",
+    "outlet": "StudyFinds",
+    "url": "https://studyfinds.com/data-centers-strain-local-water-supplies/",
+    "where": "StudyFinds",
+    "dateSeen": "2026-11-10",
+    "claimId": "data-centers-water-stress",
+    "claim": "Data centers are straining local water supplies.",
+    "notes": "published 2026-10-20 (StudyFinds). Underlying study: Rosa et al., Environmental Science & Technology, published online 2026-09-24. It is modeled exposure, not measured shortage: about 25% of 9,347 data centers (2,315 sites) sit where monthly water demand exceeds natural supply for at least a month a year, using 2001-2010 water conditions. Authors call it an upper-bound estimate and say it does not prove current harm or active competition for water. Not specific to AI-only facilities."
+  }
+]
