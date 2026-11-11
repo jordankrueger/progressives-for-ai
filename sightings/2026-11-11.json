@@ -1,0 +1,52 @@
+[
+  {
+    "headline": "Rising energy costs from AI data centers land hardest on lower income, rural households, study finds",
+    "outlet": "CBS News",
+    "url": "https://www.cbsnews.com/news/rising-energy-costs-ai-data-centers-lower-income-rural-households-study/",
+    "where": "CBS News",
+    "dateSeen": "2026-11-11",
+    "claimId": "data-center-costs-hit-low-income-households",
+    "claim": "Rising energy costs tied to AI data centers fell hardest on lower-income and rural households.",
+    "notes": "published the week of 2026-11-09 (article says 'published this week'; page last updated 2026-11-10, no original date shown). Cornell-led study in Nature Energy, peer-reviewed academic work; no advocacy affiliation shown, but the researchers recommend policy changes. Grid-spending figures for 2020-2025 read as data analysis. The 76% larger rural/lower-income cost increase and the ~20% Bay Area wholesale-price estimate are not clearly labeled measured vs modeled."
+  },
+  {
+    "headline": "Two surveys find nearly two-thirds of teens use AI chatbots; some uses linked to worse mental health",
+    "outlet": "OPB",
+    "url": "https://www.opb.org/article/2026/10/30/new-research-looks-at-teen-mental-health-and-ai-chatbot-use/",
+    "where": "OPB",
+    "dateSeen": "2026-11-11",
+    "claimId": "chatbot-teen-mental-health",
+    "claim": "Young people who use AI chatbots during emotional distress have worse mental health and more suicidal thoughts and attempts.",
+    "notes": "published 2026-10-30. Both surveys from advocacy groups, not academic institutions: JED Foundation (mental health group; 5,500 US students aged 9-17) and Common Sense Media (online safety group; sample size not stated). Correlational; the researcher says the data do not establish that AI causes the problems, and the link may run both ways. Same study as the Futurism row logged 2026-11-06."
+  },
+  {
+    "headline": "Elvis Presley rights holders sue AI music generator Suno",
+    "outlet": "Action News 5",
+    "url": "https://actionnews5.com/2026/11/09/lawsuit-accuses-generative-ai-company-illegally-profiting-elvis-presleys-music",
+    "where": "Action News 5",
+    "dateSeen": "2026-11-11",
+    "claimId": "ai-training-harms-creators",
+    "claim": "Training AI on copyrighted songs harms songwriters and the music industry.",
+    "notes": "published 2026-11-09; Elvis Presley Enterprises filed the suit 2026-11-06 in N.D. Cal., alleging Suno profited from Presley's music and likeness under Tennessee's ELVIS Act. Suno's profits 'believed to exceed $50 million'; damages to be proven at trial. Allegations only; no court has ruled. Plaintiff is a rights holder (interested party)."
+  },
+  {
+    "headline": "Report warns AI bubble is 'primed to pop' and could hurt working people",
+    "outlet": "Common Dreams",
+    "url": "https://www.commondreams.org/news/ai-bubble-no-bailout",
+    "where": "Common Dreams",
+    "dateSeen": "2026-11-11",
+    "claimId": "ai-bubble-harms-working-people",
+    "claim": "The AI investment boom is a financial bubble that could harm working-class Americans when it bursts.",
+    "notes": "published 2026-10-21 (page date). Report 'Brace for Impact' by Open Markets Institute and Americans for Financial Reform Education Fund: advocacy groups with a stated policy position (interested party). Forecast of a crash, not a measurement of current harm. Same report as the Asia Times row logged 2026-11-05."
+  },
+  {
+    "headline": "AI-driven layoffs are creating a new class of boomerang employees",
+    "outlet": "CNBC",
+    "url": "https://www.cnbc.com/make-it/2026/10/30/ai-rebounding-employees.html",
+    "where": "CNBC",
+    "dateSeen": "2026-11-11",
+    "claimId": "ai-layoffs-rehiring-regret",
+    "claim": "Employers replaced workers with AI, then asked some of them back, with regret over AI-linked cuts.",
+    "notes": "published 2026-10-30. SHL survey run by Propeller Insights, June-July 2026, more than 1,000 US and 1,000 UK workers. SHL is a commercial talent-assessment firm (interested party). The article reports employers asking workers back; the 'pulled the plug too quickly' view is an SHL executive's opinion, not a survey finding. Same survey as the Breitbart and People Matters rows."
+  }
+]
