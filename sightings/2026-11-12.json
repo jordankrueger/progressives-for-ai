@@ -1,0 +1,22 @@
+[
+  {
+    "headline": "Grok Draws 3 Copyright Suits Over AI Training With Books",
+    "outlet": "Law360",
+    "url": "https://www.law360.com/corporate/articles/2547420",
+    "where": "Law360",
+    "dateSeen": "2026-11-12",
+    "claimId": "ai-training-pirated-books",
+    "claim": "AI companies trained models on pirated books without authors' consent or payment.",
+    "notes": "published 2026-11-06 (page date read via WebFetch). Three copyright suits by two publishers and a group of authors over books allegedly pirated to train the Grok model. Allegations only; no ruling yet. Defendant names not confirmed from the page excerpt. Other coverage (RuntimeWire, dated 2026-11-10) gives filing date 2026-11-04 and names a defendant entity that could not be confirmed, so it is not logged."
+  },
+  {
+    "headline": "BloombergNEF: Data center gas plants to increase US power emissions 10%",
+    "outlet": "CryptoBriefing",
+    "url": "https://cryptobriefing.com/bloombergnef-data-center-gas-plants-to-increase-us-power-emissions-10/",
+    "where": "CryptoBriefing",
+    "dateSeen": "2026-11-12",
+    "claimId": "data-center-buildout-erases-emissions-cuts",
+    "claim": "The data center buildout raises US power-sector emissions.",
+    "notes": "published 2026-11-11 (page date read via WebFetch). Relays a BloombergNEF report: on-site gas plants planned for US data centers (181 GW announced) could add about 10% to 2025 US power-sector emissions (about 345 million tonnes CO2e a year at assumed operating rates). Forecast, not a measurement; the report does not say how much capacity is permitted or financed. Other coverage says Bloomberg Philanthropies commissioned it; this article does not say. Bloomberg's own page returned 403, not read."
+  }
+]
