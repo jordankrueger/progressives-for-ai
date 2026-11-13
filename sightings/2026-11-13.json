@@ -1,0 +1,22 @@
+[
+  {
+    "headline": "Greenhouse emissions expected to surge from gas-powered AI data centers",
+    "outlet": "Harvard T.H. Chan School of Public Health",
+    "url": "https://hsph.harvard.edu/news/greenhouse-emissions-expected-to-surge-from-gas-powered-ai-data-centers/",
+    "where": "Harvard T.H. Chan School of Public Health",
+    "dateSeen": "2026-11-13",
+    "claimId": "data-center-buildout-erases-emissions-cuts",
+    "claim": "The data center buildout raises US power-sector emissions.",
+    "notes": "published 2026-11-05; university news item. Projection, not a measurement: gas plants built to run new AI data centers could produce hundreds of millions of tons of emissions, based on air permits, corporate disclosures and community presentations. Same underlying story as the BloombergNEF report logged 2026-11-12 (CryptoBriefing)."
+  },
+  {
+    "headline": "The Catholic 'AI Slop' Problem: Authors and Publishers Confront the Flood of AI-Generated Books",
+    "outlet": "National Catholic Register",
+    "url": "https://www.ncregister.com/news/the-catholic-ai-slop-problem",
+    "where": "National Catholic Register",
+    "dateSeen": "2026-11-13",
+    "claimId": "ai-generated-copycat-books",
+    "claim": "AI-written copycat books are flooding Amazon, copying human-written titles and misleading buyers.",
+    "notes": "published 2026-11-12 (Jonah McKeown). The 63% figure is from an Originality.ai scan of about 2,000 religious books in Amazon's Religion & Spirituality category; Originality.ai sells AI-detection tools (interested party). It is a probabilistic estimate ('likely AI-written'), not a confirmed count. Copycat examples are the authors' own reports."
+  }
+]
