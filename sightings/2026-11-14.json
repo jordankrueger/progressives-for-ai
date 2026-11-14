@@ -1,0 +1,32 @@
+[
+  {
+    "headline": "AI Data Centers Are Raising Factory Electric Bills. You Could End Up Paying for It Twice",
+    "outlet": "24/7 Wall St",
+    "url": "https://247wallst.com/investing/2026/11/12/ai-data-centers-are-raising-factory-electric-bills-you-could-end-up-paying-for-it-twice/",
+    "where": "24/7 Wall St",
+    "dateSeen": "2026-11-14",
+    "claimId": "data-center-costs-pass-through-to-factories",
+    "claim": "AI data centers are raising electricity costs for factories, which pass them on as higher prices.",
+    "notes": "published 2026-11-12 (Rich Duprey). Opinion-leaning financial piece. Figures cited: PJM capacity prices (market auction results), Belden Brick charge increase (via Reuters), PJM market monitor finding on data center load growth. EIA figures are modeled projections. Industrial Energy Consumers of America quoted (interested party). The 'paying twice' framing is the author's, not a measured effect."
+  },
+  {
+    "headline": "Data centers shift grid costs onto households, Cornell study finds",
+    "outlet": "Superpower Daily",
+    "url": "https://superpowerdaily.com/posts/data-centers-shift-grid-costs-onto-households-cornell-study-finds",
+    "where": "Superpower Daily",
+    "dateSeen": "2026-11-14",
+    "claimId": "data-center-costs-hit-low-income-households",
+    "claim": "AI data centers raise wholesale electricity prices and shift grid costs onto existing customers, especially lower-income and rural households.",
+    "notes": "published 2026-11-10. Reports a Nature Energy study published 2026-11-09 (Feng and You; Cornell account cited as a second source). Same study as the CBS News row logged 2026-11-11. The post links to the nature.com article, but that page redirected to a login, so the study date comes from this post, not the journal page."
+  },
+  {
+    "headline": "AI dependence linked to sharp decline in cognitive performance, new studies confirm",
+    "outlet": "NaturalNews",
+    "url": "https://www.naturalnews.com/2026-11-09-ai-dependence-linked-sharp-decline-cognitive-performance.html",
+    "where": "NaturalNews",
+    "dateSeen": "2026-11-14",
+    "claimId": "ai-use-cognitive-decline",
+    "claim": "Heavy reliance on AI is linked to a sharp decline in cognitive performance.",
+    "notes": "published 2026-11-09 (Willow Tohi). Article describes three randomized trials (1,222 participants) presented at the Conference on Language Modeling, but gives no paper title, DOI or journal citation, and cites only secondary sources, so the study could not be located. Outlet is not a reliable source per the search results; treat with caution. Correlational or experimental design unclear beyond the trial description."
+  }
+]
