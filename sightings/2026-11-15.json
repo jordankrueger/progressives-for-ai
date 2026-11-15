@@ -1,0 +1,12 @@
+[
+  {
+    "headline": "Data centers need power",
+    "outlet": "Cornell University",
+    "url": "https://news.cornell.edu/stories/2026/11/data-centers-need-power-lower-income-rural-residents-pay-price",
+    "where": "Cornell University",
+    "dateSeen": "2026-11-15",
+    "claimId": "data-center-costs-hit-low-income-households",
+    "claim": "Rising energy costs tied to AI data centers fell hardest on lower-income and rural households.",
+    "notes": "published 2026-11-09 (Nature Energy; page date read via WebFetch). Cornell's own news release about a Cornell-led study (Fengqi You and Cheng Feng): institution's own work, an interested party. Analysis of 2020-2025 grid costs: data centers covered about 38% ($3.12B of $8.25B) of 2025 grid costs tied to their growth; residents covered the rest. Same study as the CBS News (2026-11-11) and Superpower Daily (2026-11-14) rows."
+  }
+]
