@@ -1,0 +1,22 @@
+[
+  {
+    "headline": "Reservoir expands copyright lawsuits against Suno and Anthropic to more than 2,500 songs combined",
+    "outlet": "Music Business Worldwide",
+    "url": "https://www.musicbusinessworldwide.com/reservoir-expands-copyright-lawsuits-against-suno-and-anthropic-to-more-than-2500-songs-combined/",
+    "where": "Music Business Worldwide",
+    "dateSeen": "2026-11-16",
+    "claimId": "ai-training-harms-creators",
+    "claim": "Suno and Anthropic infringe music publisher Reservoir's song catalog through training and outputs.",
+    "notes": "published 2026-11-13. Amended complaints filed 2026-11-11 in N.D. Cal. (Reservoir Media, rights holder, an interested party). Allegations only; no court has ruled. Reservoir's demand: about $445.7M in statutory damages across both suits (1,368 works vs Suno, 1,143 vs Anthropic). Damages are the plaintiff's pleaded figures, not awards."
+  },
+  {
+    "headline": "Friends of the Court Flock to the OpenAI Copyright Fight",
+    "outlet": "Tech Policy Press",
+    "url": "https://techpolicy.press/friends-of-the-court-flock-to-the-openai-copyright-fight",
+    "where": "Tech Policy Press",
+    "dateSeen": "2026-11-16",
+    "claimId": "ai-training-pirated-books",
+    "claim": "AI companies' use of books from pirate sources harms authors and promotes piracy as a business.",
+    "notes": "published 2026-11-11. The piracy claim is made in amicus briefs (56 accepted) supporting the authors and publishers, several of them advocacy or industry groups (interested parties, e.g. Association of American Publishers, Copyright Alliance). Allegations and legal arguments; no ruling on fair use or on the piracy claims."
+  }
+]
