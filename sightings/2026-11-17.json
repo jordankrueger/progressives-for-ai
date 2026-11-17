@@ -1,0 +1,32 @@
+[
+  {
+    "headline": "Harvard study: Largest U.S. data centers emit more carbon than all of Denmark",
+    "outlet": "Harvard T.H. Chan School of Public Health",
+    "url": "https://hsph.harvard.edu/news/hyperscale-data-centers-energy-consumption-carbon-emissions-newly-estimated-by-researchers/",
+    "where": "Harvard T.H. Chan School of Public Health",
+    "dateSeen": "2026-11-17",
+    "claimId": "hyperscale-data-centers-emissions-denmark",
+    "claim": "US hyperscale data centers emitted about 25.7 million metric tons of CO2 in one year, mostly from fossil-fuel power, comparable to Denmark's annual emissions.",
+    "notes": "published 2026-11-16 (university news release, page date read via WebFetch). Peer-reviewed study in Nature Sustainability (lead author Guidi, corresponding author Dominici). Estimate, not a direct measurement: attributed from plant-level generation data for 2024-2025 at 403 facilities; the study uses 2023 EPA data and says figures are likely understated for today. Coverage ties the buildout to AI demand; the study covers hyperscale data centers generally, not AI-only facilities. The university is the study's own institution, so the release is an interested party's own work."
+  },
+  {
+    "headline": "Harvard study: Largest U.S. data centers emit more carbon than all of Denmark",
+    "outlet": "Spectrum News",
+    "url": "https://spectrumnews1.com/ky/louisville/environment/2026/11/16/harvard-study-u-s--data-center-carbon-emissions",
+    "where": "Spectrum News",
+    "dateSeen": "2026-11-17",
+    "claimId": "hyperscale-data-centers-emissions-denmark",
+    "claim": "US hyperscale data centers emitted about 25.7 million metric tons of CO2 in one year, mostly from fossil-fuel power, comparable to Denmark's annual emissions.",
+    "notes": "published 2026-11-16 (page date read via WebFetch). Associated Press story carried by Spectrum News. Same Harvard study as the Harvard T.H. Chan row logged 2026-11-17."
+  },
+  {
+    "headline": "Red Flag: Data Centers Emit as Much Climate Pollution as Denmark",
+    "outlet": "Common Dreams",
+    "url": "https://www.commondreams.org/news/data-centers-climate-pollution",
+    "where": "Common Dreams",
+    "dateSeen": "2026-11-17",
+    "claimId": "hyperscale-data-centers-emissions-denmark",
+    "claim": "US hyperscale data centers emitted about 25.7 million metric tons of CO2 in one year, mostly from fossil-fuel power, comparable to Denmark's annual emissions.",
+    "notes": "published 2026-11-16 (page date read via WebFetch). Opinion editor's article; Common Dreams is a nonprofit outlet that describes itself as advocacy-leaning, and it quotes an opinion column. Reports the Harvard study (Nature Sustainability) and quotes its authors. Same study as the Harvard T.H. Chan and Spectrum News rows."
+  }
+]
