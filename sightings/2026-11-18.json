@@ -1,0 +1,22 @@
+[
+  {
+    "headline": "‘AI rebounding’: Nearly 20% of U.S. workers replaced by AI are being asked back, now demanding higher pay, job security and AI transparency",
+    "outlet": "Fortune",
+    "url": "https://fortune.com/2026/11/09/ai-rebounding-20-us-workers-replaced-higher-pay-job-security/",
+    "where": "Fortune",
+    "dateSeen": "2026-11-18",
+    "claimId": "ai-layoffs-rehiring-regret",
+    "claim": "Employers replaced workers with AI, then asked some of them back, with regret over AI-linked cuts.",
+    "notes": "published 2026-11-09 (page date read via WebFetch). Reports the SHL survey fielded by Propeller Insights in June and July 2026 (US and UK). SHL is a commercial talent-assessment firm (interested party). The 19.1% figure is workers' own accounts of being invited back, not verified rehiring. Same survey as the CNBC, Breitbart and People Matters rows."
+  },
+  {
+    "headline": "How data center demand is reshaping electricity costs across the US",
+    "outlet": "Alabama Gazette",
+    "url": "https://www.alabamagazette.com/story/2026/11/16/news/how-data-center-demand-is-reshaping-electricity-costs-across-the-us/13095.html",
+    "where": "Alabama Gazette",
+    "dateSeen": "2026-11-18",
+    "claimId": "data-centers-raise-electricity-costs",
+    "claim": "Data center demand is raising electricity costs for businesses and households, depending on region.",
+    "notes": "published 2026-11-16 (page date read via WebFetch). Stacker explainer, syndicated; written with Lucas Winter for Shipley Energy (a commercial energy firm, interested party). Effect described as regional and conditional; cites Grid Strategies, LBNL, EIA, Dallas Fed, PJM and state regulator filings. Notes that forecasts may overstate demand."
+  }
+]
