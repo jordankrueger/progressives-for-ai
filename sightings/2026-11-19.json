@@ -1,0 +1,32 @@
+[
+  {
+    "headline": "Over 400 American AI Data Centers Use As Much Electricity As Wisconsin, Michigan, or Indiana",
+    "outlet": "Time",
+    "url": "https://time.com/article/2026/11/16/ai-data-centers-electricity-carbon-emissions-study/",
+    "where": "Time",
+    "dateSeen": "2026-11-19",
+    "claimId": "hyperscale-data-centers-emissions-denmark",
+    "claim": "The largest U.S. data centers emit as much carbon as Denmark.",
+    "notes": "published 2026-11-16; Nature Sustainability study by Harvard researchers (403 US hyperscale data centers, May 2024 to April 2025); reports about 25.7 million metric tons CO2 and states that emissions are estimated from regional grid mix; estimate, not a company's own numbers; the article's headline is about electricity use"
+  },
+  {
+    "headline": "Harvard study: Largest U.S. data centers emit more carbon than all of Denmark",
+    "outlet": "Spectrum News",
+    "url": "https://spectrumnews1.com/ky/louisville/environment/2026/11/16/harvard-study-u-s--data-center-carbon-emissions",
+    "where": "Spectrum News",
+    "dateSeen": "2026-11-19",
+    "claimId": "hyperscale-data-centers-emissions-denmark",
+    "claim": "The largest U.S. data centers emit as much carbon as Denmark.",
+    "notes": "published 2026-11-16; coverage of the Harvard-led Nature Sustainability study; estimate, not a measurement of each facility; the study window ends April 2025"
+  },
+  {
+    "headline": "‘AI rebounding’: Nearly 20% of U.S. workers replaced by AI are being asked back—now they’re demanding higher pay, job security and AI transparency",
+    "outlet": "Fortune",
+    "url": "https://finance.yahoo.com/technology/ai/articles/ai-rebounding-nearly-20-u-070000235.html",
+    "where": "Yahoo Finance",
+    "dateSeen": "2026-11-19",
+    "claimId": "ai-layoffs-rehiring-regret",
+    "claim": "Workers replaced by AI are being asked back to their jobs.",
+    "notes": "published 2026-11-09; Fortune story republished on Yahoo Finance; survey commissioned by SHL, a talent-assessment firm (interested party), fieldwork June to July 2026; 19.1% of US respondents said they were replaced by AI and later asked to return; survey measures self-report, not company records"
+  }
+]
