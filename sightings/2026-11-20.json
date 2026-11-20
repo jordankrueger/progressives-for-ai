@@ -1,0 +1,32 @@
+[
+  {
+    "headline": "AI datacentres set to drive 70% rise in carbon emissions by 2030, IEA warns",
+    "outlet": "Irish Examiner",
+    "url": "https://www.irishexaminer.com/world/arid-41939628.html",
+    "where": "Irish Examiner",
+    "dateSeen": "2026-11-20",
+    "claimId": "iea-datacentre-emissions-2030-forecast",
+    "claim": "Data centre emissions are on course to rise about 70% by 2030, with AI driving about three-quarters of the growth in data centre electricity demand.",
+    "notes": "published 2026-11-19 (page date read via WebFetch). Reports the IEA World Energy Outlook 2026 central-scenario projections. Forecast, not a measurement. Figures are global; the rise is tied to gas and coal supply in the US and China."
+  },
+  {
+    "headline": "Driven by US and China, Planet-Heating Emissions From Data Centers Set to Rise by 70% by 2030: IEA",
+    "outlet": "Common Dreams",
+    "url": "https://www.commondreams.org/news/data-centers-emissions",
+    "where": "Common Dreams",
+    "dateSeen": "2026-11-20",
+    "claimId": "iea-datacentre-emissions-2030-forecast",
+    "claim": "Data centre emissions are on course to rise about 70% by 2030, with AI driving about three-quarters of the growth in data centre electricity demand.",
+    "notes": "published 2026-11-19 (page date read via WebFetch). News reporting on the IEA World Energy Outlook 2026 projection. Forecast, not a measurement. Common Dreams is a nonprofit outlet that leans advocacy, so the framing is its own; the figures are the IEA's."
+  },
+  {
+    "headline": "Data centre emissions set to rise 70% by 2030, IEA warns",
+    "outlet": "DataCentre Review",
+    "url": "https://datacentrereview.com/2026/11/data-centre-emissions-on-course-to-rise-70-by-2030-iea-warns/",
+    "where": "DataCentre Review",
+    "dateSeen": "2026-11-20",
+    "claimId": "iea-datacentre-emissions-2030-forecast",
+    "claim": "Data centre emissions are on course to rise about 70% by 2030, with AI driving about three-quarters of the growth in data centre electricity demand.",
+    "notes": "published 2026-11-19 (page date read via WebFetch). Trade publication covering the IEA World Energy Outlook 2026. Forecast, not a measurement."
+  }
+]
