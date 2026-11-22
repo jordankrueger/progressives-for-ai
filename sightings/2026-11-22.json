@@ -1,0 +1,32 @@
+[
+  {
+    "headline": "Oregon attorney general sues OpenAI, claims company knowingly endangers teens",
+    "outlet": "OPB",
+    "url": "https://www.opb.org/article/2026/11/17/oregon-ag-sues-openai-claims-company-knowingly-endangers-teens/",
+    "where": "OPB",
+    "dateSeen": "2026-11-22",
+    "claimId": "chatgpt-teens-endangered",
+    "claim": "ChatGPT for Teens lacks adequate safeguards and endangers minors, according to Oregon's lawsuit against OpenAI.",
+    "notes": "published 2026-11-17 (page date read via WebFetch). Public broadcaster report on Oregon Attorney General's 53-page complaint, at least $2.035B sought. Allegations only; no ruling. Same lawsuit as the KLCC row logged 2026-11-21."
+  },
+  {
+    "headline": "Oregon Throws Punch At ChatGPT Maker, Wants $2 Billion For Allegedly Endangering Kids",
+    "outlet": "Daily Caller",
+    "url": "https://dailycaller.com/2026/11/18/oregon-openai-chatgpt-lawsuit-child-endangerment/",
+    "where": "Daily Caller",
+    "dateSeen": "2026-11-22",
+    "claimId": "chatgpt-teens-endangered",
+    "claim": "ChatGPT for Teens lacks adequate safeguards and endangers minors, according to Oregon's lawsuit against OpenAI.",
+    "notes": "published 2026-11-18 (page date read via WebFetch). Reports the Oregon Attorney General's lawsuit (more than $2B sought). Allegations only; no ruling. Outlet's own editorial framing; the government plaintiff is an interested party. Same lawsuit as the KLCC and OPB rows."
+  },
+  {
+    "headline": "Oregon Sues OpenAI in $2 Billion Lawsuit Over Child Safety",
+    "outlet": "Epoch Times",
+    "url": "https://theepochtimes.com/us/oregon-sues-openai-in-2-billion-lawsuit-over-child-safety-6126933",
+    "where": "Epoch Times",
+    "dateSeen": "2026-11-22",
+    "claimId": "chatgpt-teens-endangered",
+    "claim": "ChatGPT for Teens lacks adequate safeguards and endangers minors, according to Oregon's lawsuit against OpenAI.",
+    "notes": "published 2026-11-19, updated 2026-11-20 (page date read via WebFetch). Reports the Oregon Attorney General's lawsuit (no less than $2B sought). Allegations only; no ruling. Same lawsuit as the KLCC, OPB and Daily Caller rows."
+  }
+]
