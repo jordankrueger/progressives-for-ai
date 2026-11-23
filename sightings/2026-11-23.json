@@ -1,0 +1,22 @@
+[
+  {
+    "headline": "Data centers to increase emissions: IEA",
+    "outlet": "Taipei Times",
+    "url": "https://www.taipeitimes.com/News/world/archives/2026/11/20/2003868084",
+    "where": "Taipei Times",
+    "dateSeen": "2026-11-23",
+    "claimId": "iea-datacentre-emissions-2030-forecast",
+    "claim": "Data centre emissions are on course to rise about 70% by 2030, with AI driving about three-quarters of the growth in data centre electricity demand.",
+    "notes": "published 2026-11-20 (page date read via WebFetch). Guardian story with AFP reporting, republished by Taipei Times. Reports the IEA World Energy Outlook 2026 central-scenario projection. Forecast, not a measurement. Figures are global; the rise is tied to fossil-fuel power in the US and China."
+  },
+  {
+    "headline": "‘Mismatch in timing’: Data center power demand is growing 19% a year. The grid is growing 2%",
+    "outlet": "Fortune",
+    "url": "https://fortune.com/2026/11/22/ai-data-centers-power-grid-capacity",
+    "where": "Fortune",
+    "dateSeen": "2026-11-23",
+    "claimId": "data-center-costs-hit-low-income-households",
+    "claim": "AI data centers raise wholesale electricity prices and shift grid costs onto existing customers, especially lower-income and rural households.",
+    "notes": "published 2026-11-22 11:34 ET (page date read via WebFetch). Cites a Cornell study (Nature Energy, published 2026-11-09) finding data centers pushed up wholesale prices, by nearly 20% in parts of the Bay Area and about 17% near Dallas-Fort Worth in 2025, and covered only 38% of grid costs tied to their growth. Growth rates (19% a year, grid 2%) come from a Howden analysis, cited via an insurance broker. Article links strained supply and household costs; it reports no direct physical harm from grid strain."
+  }
+]
