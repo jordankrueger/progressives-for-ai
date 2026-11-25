@@ -1,0 +1,42 @@
+[
+  {
+    "headline": "AI is making it hard for young people to find work, report says",
+    "outlet": "NPR",
+    "url": "https://www.wlrn.org/npr-breaking-news/2026-11-23/ai-is-making-it-hard-for-young-people-to-find-work-report-says",
+    "where": "WLRN",
+    "dateSeen": "2026-11-25",
+    "claimId": "ai-hurting-young-job-seekers",
+    "claim": "AI is squeezing entry-level hiring and making it harder for young graduates to start white-collar careers.",
+    "notes": "published 2026-11-23 (page date read via WebFetch on the WLRN copy of the NPR story; the npr.org page returned HTTP 503). Interview with Matt Sigelman, Burning Glass Institute, about its report; the report itself was not opened. Reports roughly 1.5 million fewer jobs than pre-pandemic trends in heavily AI-adopting sectors. Burning Glass Institute is a nonprofit labor-research group; a forecast-style comparison, not a measured causal effect."
+  },
+  {
+    "headline": "NC regulators approve new rates for data centers in rate hike plan",
+    "outlet": "WUNC",
+    "url": "https://www.wunc.org/2026-11-18/nc-regulators-approve-new-rates-for-data-centers-in-rate-hike-plan",
+    "where": "WUNC",
+    "dateSeen": "2026-11-25",
+    "claimId": "data-centers-raise-electricity-costs",
+    "claim": "Data center demand is raising electricity costs for households, depending on region.",
+    "notes": "published 2026-11-18 (page date read via WebFetch). North Carolina Utilities Commission approved Duke Energy rate increases alongside a data-center tariff. Article says data centers could raise costs for residential customers if they leave before paying their share of new gas plants built to serve them. Regulator decision, not a measurement of realized bills; critics say the protections fall short."
+  },
+  {
+    "headline": "Sierra Club report shows data centers' potential to erase 15 years of climate progress",
+    "outlet": "Gloucester City News",
+    "url": "https://gloucestercitynews.net/2026/11/sierra-club-report-shows-data-centers-potential-to-erase-15-years-of-climate-progress/",
+    "where": "Gloucester City News",
+    "dateSeen": "2026-11-25",
+    "claimId": "data-centers-gas-plants-climate-setback",
+    "claim": "Gas-powered data centers could cancel out about 15 years of U.S. emissions progress and worsen local air pollution.",
+    "notes": "published 2026-11-22, page updated 2026-11-25 (page date read via WebFetch). Advocacy group's own report (Sierra Club, an interested party); the article credits the Sierra Club for its figures. Projections, not measured emissions. Figures differ across coverage of the same report (this article cites 2.3 billion tons of CO2 by 2030)."
+  },
+  {
+    "headline": "NVIDIA Seeded Pirated Books and Shared Them With Adobe, Authors Allege",
+    "outlet": "TorrentFreak",
+    "url": "https://torrentfreak.com/nvidia-seeded-pirated-books-and-shared-them-with-adobe-authors-allege/",
+    "where": "TorrentFreak",
+    "dateSeen": "2026-11-25",
+    "claimId": "nvidia-pirated-books-complaint",
+    "claim": "Nvidia downloaded pirated books, including via BitTorrent, and distributed them, according to authors' amended complaint.",
+    "notes": "published 2026-11-25 (datePublished metadata read via WebFetch; visible page shows no date). Allegations from the authors' second amended complaint filed 2026-11-24 (N.D. Cal., 4:24-cv-01454); the court has not ruled and Nvidia's response is due in December 2026. Allegations on information and belief. Trade-press account of a court filing, not a company statement."
+  }
+]
