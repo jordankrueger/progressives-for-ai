@@ -1,0 +1,22 @@
+[
+  {
+    "headline": "Study reveals data centers' long-distance damage to air quality",
+    "outlet": "MIT News",
+    "url": "https://news.mit.edu/2026/study-reveals-data-centers-long-distance-damage-air-quality-1119",
+    "where": "MIT News",
+    "dateSeen": "2026-11-26",
+    "claimId": "data-centers-air-pollution-deaths",
+    "claim": "Electricity demand from U.S. data centers causes premature deaths from air pollution, including far from the data centers themselves.",
+    "notes": "published 2026-11-19 (page date read via WebFetch). MIT-led study in Environmental Research Letters (Selin, Chen, with UC Irvine and Yale). Model estimate (electricity system model plus chemical transport model plus concentration-response evidence), not a measurement. Figures in the article are for 2023."
+  },
+  {
+    "headline": "Exclusive / AI is disrupting entry-level work, report finds",
+    "outlet": "Semafor",
+    "url": "https://www.semafor.com/article/11/23/2026/ai-disrupting-entry-level-work-report-finds",
+    "where": "Semafor",
+    "dateSeen": "2026-11-26",
+    "claimId": "ai-hurting-young-job-seekers",
+    "claim": "AI is squeezing entry-level hiring and making it harder for young graduates to start white-collar careers.",
+    "notes": "published 2026-11-23 (page date read via WebFetch). Report by RAISE US (led by Gina Raimondo) and the Burning Glass Institute, a labor research think tank; same report as the NPR/WLRN row logged 2026-11-25. Reports 3-8% average decline in early-career openings in AI-heavy industries, 2021 to 2026. Interested-party check: the report's producers are labor and policy groups; the report was not opened directly."
+  }
+]
