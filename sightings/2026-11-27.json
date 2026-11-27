@@ -1,0 +1,22 @@
+[
+  {
+    "headline": "Harvard study: Largest U.S. data centers emit more carbon than all of Denmark",
+    "outlet": "Spectrum News",
+    "url": "https://spectrumnews1.com/ky/louisville/environment/2026/11/16/harvard-study-u-s--data-center-carbon-emissions",
+    "where": "Spectrum News",
+    "dateSeen": "2026-11-27",
+    "claimId": "data-centers-emissions-exceed-denmark",
+    "claim": "The roughly 400 largest U.S. data centers emitted more CO2 in a year than Denmark, according to a Harvard-led study.",
+    "notes": "published 2026-11-16 (page date read via WebFetch). AP story carried by Spectrum News. Study in Nature Sustainability covers 403 large US data centers, May 2024 to April 2025; emissions are modeled estimates because operators do not disclose data, not direct measurements. Article also quotes an advocacy group (Climate Action Against Disinformation) and a heat-recovery company (Danfoss) on unrelated figures."
+  },
+  {
+    "headline": "Data centers are getting their own natural gas power plants",
+    "outlet": "MIT Technology Review",
+    "url": "https://www.technologyreview.com/2026/11/24/1149622/data-centers-natural-gas/",
+    "where": "MIT Technology Review",
+    "dateSeen": "2026-11-27",
+    "claimId": "data-center-onsite-gas-plants-emissions",
+    "claim": "Off-grid gas plants being built for data centers could emit about 345 million metric tons of CO2-equivalent per year if all announced plants are built.",
+    "notes": "published 2026-11-24 (page date read via WebFetch). Projection, not a measurement: the 345 Mt/yr figure (BloombergNEF estimate, as cited) assumes every announced on-site plant is built; about 4.9 GW is operating today. Article reports over 100 announced US plants."
+  }
+]
